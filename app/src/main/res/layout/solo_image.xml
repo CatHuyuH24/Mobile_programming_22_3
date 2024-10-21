@@ -6,7 +6,7 @@
     android:padding="3dp" >
 
     <TextView
-        android:id="@+id/txtSoloMsg"
+        android:id="@+id/txtView_solo_image_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#ff0000ff"
@@ -14,7 +14,7 @@
         android:text="@string/solo_image_title_placeholder"/>
 
     <ImageView
-        android:id="@+id/imgSoloPhoto"
+        android:id="@+id/imgView_solo_image"
         android:contentDescription="@string/solo_default_image_content"
         android:layout_width="match_parent"
         android:layout_height="0dip"
@@ -26,28 +26,27 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Set the style for the button bar -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            style="?android:attr/buttonBarStyle"> <!-- Apply buttonBarStyle here -->
+            style="?android:attr/buttonBarStyle">
 
             <Button
-                android:id="@+id/btnSoloBack"
+                android:id="@+id/btn_solo_back"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:text="@string/solo_back_btn"
-                style="?android:attr/buttonBarButtonStyle"/> <!-- Apply buttonBarButtonStyle -->
+                style="?android:attr/buttonBarButtonStyle"/>
 
             <Button
-                android:id="@+id/btnSoloSetPhoneBackground"
+                android:id="@+id/btn_solo_set_background"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:text="@string/solo_set_phone_background_btn"
-                style="?android:attr/buttonBarButtonStyle"/> <!-- Apply buttonBarButtonStyle -->
+                style="?android:attr/buttonBarButtonStyle"/>
         </LinearLayout>
 
         <LinearLayout
@@ -56,7 +55,7 @@
             android:orientation="horizontal">
 
             <Button
-                android:id="@+id/btnSoloPrevious"
+                android:id="@+id/btn_solo_previous"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
@@ -64,7 +63,7 @@
             style="?android:attr/buttonBarButtonStyle"/>
 
             <Button
-                android:id="@+id/btnSoloNext"
+                android:id="@+id/btn_solo_next"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
