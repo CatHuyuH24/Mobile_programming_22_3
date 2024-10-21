@@ -60,16 +60,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:text="@string/solo_previous_btn"<!-- Update to appropriate string resource -->
-            style="?android:attr/buttonBarButtonStyle"/> <!-- Apply buttonBarButtonStyle -->
+                android:text="@string/solo_previous_btn"
+            style="?android:attr/buttonBarButtonStyle"/>
 
             <Button
                 android:id="@+id/btnSoloNext"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:text="@string/solo_next_btn" <!-- Update to appropriate string resource -->
-            style="?android:attr/buttonBarButtonStyle"/> <!-- Apply buttonBarButtonStyle -->
+                android:text="@string/solo_next_btn"
+            style="?android:attr/buttonBarButtonStyle"/>
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>
