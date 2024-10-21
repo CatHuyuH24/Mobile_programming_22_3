@@ -43,4 +43,12 @@
         libero vel nunc consequat, quis tincidunt nisl eleifend. Cras bibendum enim a justo luctus
         vestibulum. Fusce dictum libero quis erat maximus, vitae volutpat diam dignissim.
     </string>
+
+    <string name="solo_back_btn">Back</string>
+    <string name="solo_default_image_content">Default image content</string>
+    <string name="solo_set_phone_background_btn">Set as background</string>
+    <string name="solo_image_title_placeholder">Placeholder for image titles</string>
+    <string name="solo_next_btn">Next</string>
+    <string name="solo_previous_btn">Previous</string>
+
 </resources>
