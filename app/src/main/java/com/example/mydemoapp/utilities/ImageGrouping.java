@@ -1,4 +1,7 @@
-package com.example.mydemoapp;
+package com.example.mydemoapp.utilities;
+
+import com.example.mydemoapp.models.ImageItem;
+import com.example.mydemoapp.models.ImageItemInterface;
 
 import java.util.ArrayList;
 import java.util.HashMap;

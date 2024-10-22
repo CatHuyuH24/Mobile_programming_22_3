@@ -1,4 +1,4 @@
-package com.example.mydemoapp;
+package com.example.mydemoapp.fragments;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -9,6 +9,13 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.mydemoapp.models.DateGroup;
+import com.example.mydemoapp.utilities.ImageGrouping;
+import com.example.mydemoapp.models.ImageItem;
+import com.example.mydemoapp.models.ImageItemInterface;
+import com.example.mydemoapp.R;
+import com.example.mydemoapp.adapters.DateGroupAdapter;
 import com.example.mydemoapp.databinding.FragmentPictureBinding;
 import java.util.ArrayList;
 import java.util.List;

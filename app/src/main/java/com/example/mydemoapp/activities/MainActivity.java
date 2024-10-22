@@ -1,7 +1,10 @@
-package com.example.mydemoapp;
+package com.example.mydemoapp.activities;
 
 import android.os.Bundle;
 
+import com.example.mydemoapp.fragments.AlbumFragment;
+import com.example.mydemoapp.fragments.PictureFragment;
+import com.example.mydemoapp.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.appcompat.app.AppCompatActivity;

@@ -1,4 +1,4 @@
-package com.example.mydemoapp;
+package com.example.mydemoapp.adapters;
 
 import android.content.Context;
 import android.content.Intent;
@@ -11,6 +11,11 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
+import com.example.mydemoapp.models.ImageItem;
+import com.example.mydemoapp.models.ImageItemInterface;
+import com.example.mydemoapp.R;
+import com.example.mydemoapp.activities.SoloImageActivity;
+
 import java.util.List;
 
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHolder> {

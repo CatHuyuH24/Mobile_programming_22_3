@@ -1,6 +1,4 @@
-package com.example.mydemoapp;
-
-import java.util.Date;
+package com.example.mydemoapp.models;
 
 public class ImageItem implements ImageItemInterface {
     private final int imageId;

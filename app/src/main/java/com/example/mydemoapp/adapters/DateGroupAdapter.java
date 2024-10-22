@@ -1,4 +1,4 @@
-package com.example.mydemoapp;
+package com.example.mydemoapp.adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -8,6 +8,10 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.mydemoapp.models.DateGroup;
+import com.example.mydemoapp.R;
+
 import java.util.List;
 
 public class DateGroupAdapter extends RecyclerView.Adapter<DateGroupAdapter.DateGroupViewHolder> {
@@ -53,5 +57,11 @@ public class DateGroupAdapter extends RecyclerView.Adapter<DateGroupAdapter.Date
             ImageAdapter imageAdapter = new ImageAdapter(context, dateGroup.getImages());
             recyclerView.setAdapter(imageAdapter);
         }
+    }
+
+    public void updateDateGroups(List<DateGroup> dateGroups) {
+        this.dateGroups.clear();
+        this.dateGroups.addAll(dateGroups);
+        notifyDataSetChanged();
     }
 }

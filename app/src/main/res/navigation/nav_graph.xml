@@ -6,11 +6,11 @@
 
     <fragment
         android:id="@+id/pictures"
-        android:name="com.example.mydemoapp.PictureFragment"
+        android:name="com.example.mydemoapp.fragments.PictureFragment"
         tools:layout="@layout/fragment_picture" />
 
     <fragment
         android:id="@+id/album"
-        android:name="com.example.mydemoapp.AlbumFragment"
+        android:name="com.example.mydemoapp.fragments.AlbumFragment"
         tools:layout="@layout/fragment_album" />
 </navigation>

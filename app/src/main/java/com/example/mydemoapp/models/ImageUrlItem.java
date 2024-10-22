@@ -1,4 +1,4 @@
-package com.example.mydemoapp;
+package com.example.mydemoapp.models;
 
 public class ImageUrlItem implements ImageItemInterface {
     private final int imageResId;
