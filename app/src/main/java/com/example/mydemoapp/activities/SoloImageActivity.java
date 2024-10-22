@@ -1,96 +1,129 @@
-    package com.example.mydemoapp.activities;
+package com.example.mydemoapp.activities;
 
-    import android.app.WallpaperManager;
-    import android.content.Intent;
-    import android.graphics.BitmapFactory;
-    import android.os.Bundle;
-    import android.widget.ImageView;
-    import android.widget.TextView;
-    import android.widget.Toast;
-    import android.widget.Button;
+import android.app.WallpaperManager;
+import android.content.Intent;
+import android.graphics.BitmapFactory;
+import android.os.Bundle;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+import android.widget.Button;
 
-    import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 
-    import com.bumptech.glide.Glide;
-    import com.example.mydemoapp.R;
+import com.bumptech.glide.Glide;
+import com.example.mydemoapp.R;
 
-    public class SoloImageActivity extends AppCompatActivity {
-        private ImageView soloImageView;
-        private TextView tvTitle;
-        private Button backBtn, nextBtn, previousBtn, setBackgroundBtn;
+import java.util.ArrayList;
 
-        @Override
-        protected void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            setContentView(R.layout.solo_image); // Create the XML layout
+public class SoloImageActivity extends AppCompatActivity {
+    private ImageView soloImageView;
+    private TextView tvTitle;
+    private Button backBtn, nextBtn, previousBtn, setBackgroundBtn;
+    private ArrayList<Integer> imageIds;
+    private int currentIndex;
 
-            soloImageView = findViewById(R.id.imgView_solo_image);
-            tvTitle = findViewById(R.id.txtView_solo_image_title);
-            backBtn = findViewById(R.id.btn_solo_back);
-            nextBtn = findViewById(R.id.btn_solo_next);
-            previousBtn = findViewById(R.id.btn_solo_previous);
-            setBackgroundBtn = findViewById(R.id.btn_solo_set_background);
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.solo_image); // Ensure you have this layout
 
-            // Get the data from the intent
-            Intent intent = getIntent();
-            String imageUrl = intent.getStringExtra("com.example.mydemoapp.IMAGE_URL");
-            int imageId = intent.getIntExtra("com.example.mydemoapp.IMAGE_RESOURCE_ID", -1);
-            String title = "The image id: " + Integer.toString(imageId);
-            tvTitle.setText(title);
+        soloImageView = findViewById(R.id.imgView_solo_image);
+        tvTitle = findViewById(R.id.txtView_solo_image_title);
+        backBtn = findViewById(R.id.btn_solo_back);
+        nextBtn = findViewById(R.id.btn_solo_next);
+        previousBtn = findViewById(R.id.btn_solo_previous);
+        setBackgroundBtn = findViewById(R.id.btn_solo_set_background);
 
-            // Load the image using Glide
-            try {
-                if (imageUrl != null) {
-                    Glide.with(this).load(imageUrl).into(soloImageView);
-                } else if (imageId != -1) {
-                    Glide.with(this).load(imageId).into(soloImageView);
-                }
-                else{
-                    //for debugging
-                    //for now, the image URL will always be null (because the current sender is ImageItem)
-                    Toast.makeText(SoloImageActivity.this, "The image ID received is "+imageId+"\nThe image URL received is null", Toast.LENGTH_LONG).show();
-                }
-            }
-            catch (Exception e)
-            {
-                e.printStackTrace();
-                Toast.makeText(SoloImageActivity.this, "The image ID received is "+imageId+" The image URL received is "+imageUrl, Toast.LENGTH_LONG).show();
-            }
+        // Get the data from the intent
+        imageIds = getIntent().getIntegerArrayListExtra("IMAGE_IDS");
+        currentIndex = getIntent().getIntExtra("CURRENT_IMAGE_INDEX", -1);
 
-
-            //when pressing "Back" button, go back to the main screen showing thumbnails (small images)
-            //no need to start an intent or activity; this will return to the previous activity on the stack
-            backBtn.setOnClickListener(view -> finish());
-
-            //when pressing "Set background button", set the image as the background of the phone's home screen
-            setBackgroundBtn.setOnClickListener(view -> {
-                WallpaperManager wallpaperManger = WallpaperManager.getInstance(getApplicationContext());
-
-                try {
-//                    //set home screen
-                    wallpaperManger.setBitmap(BitmapFactory.decodeResource(getResources(), imageId),null,true,WallpaperManager.FLAG_SYSTEM);
-                    //takes a while to process the image
-                    //not allowing the user to choose the angle, position of the image
-
-                    //TODO: Display a loading screen while the image is being processed? Not sure
-                    //TODO: Allow the user to specify the angle or roation... position of the image about to be set as home screen? Not sure
-
-                    // set lock screen -> MAKE THIS A SEPARATE BUTTON???
-                    // wallpaperManger.setBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.teddy_bg_lock),null,true,WallpaperManager.FLAG_LOCK);
-
-                    //notify the user that the wallpaper has been set
-                    Toast.makeText(SoloImageActivity.this, "Home screen wallpaper has been changed", Toast.LENGTH_LONG).show();
-                }
-                catch (Exception e)
-                {
-                    e.printStackTrace();
-                    Toast.makeText(SoloImageActivity.this, "Failed to set wallpaper", Toast.LENGTH_LONG).show();
-                }
-            });
-
-            //TODO: NEXT BUTTON AND PREVIOUS BUTTON WITH ANIMATION
-
-
+        if (imageIds != null && currentIndex != -1) {
+            loadImage(currentIndex); // Load the current image
         }
+
+        // Back button to finish the activity
+        backBtn.setOnClickListener(view -> finish());
+
+        // Set the background
+        setBackgroundBtn.setOnClickListener(view -> setWallpaper());
+
+        // Previous button with slide animation
+        previousBtn.setOnClickListener(view -> {
+            if (currentIndex > 0) {
+                slideOutRightAndLoadImage(--currentIndex); // Slide out right and load previous image
+            } else {
+                Toast.makeText(this, "This is the first image", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Next button with slide animation
+        nextBtn.setOnClickListener(view -> {
+            if (currentIndex < imageIds.size() - 1) {
+                slideOutLeftAndLoadImage(++currentIndex); // Slide out left and load next image
+            } else {
+                Toast.makeText(this, "This is the last image", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
+    private void loadImage(int index) {
+        // Load the image using Glide
+        Glide.with(this).load(imageIds.get(index)).into(soloImageView);
+        tvTitle.setText("Image ID: " + imageIds.get(index)); // Update title
+    }
+
+    private void slideOutLeftAndLoadImage(int index) {
+        Animation slideOutLeft = AnimationUtils.loadAnimation(this, R.anim.slide_out_left);
+        Animation slideInLeft = AnimationUtils.loadAnimation(this, R.anim.slide_in_left);
+
+        soloImageView.startAnimation(slideOutLeft);
+        slideOutLeft.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {}
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                loadImage(index); // Load the new image
+                soloImageView.startAnimation(slideInLeft); // Slide in the new image
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {}
+        });
+    }
+
+    private void slideOutRightAndLoadImage(int index) {
+        Animation slideOutRight = AnimationUtils.loadAnimation(this, R.anim.slide_out_right);
+        Animation slideInRight = AnimationUtils.loadAnimation(this, R.anim.slide_in_right);
+
+        soloImageView.startAnimation(slideOutRight);
+        slideOutRight.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {}
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                loadImage(index); // Load the new image
+                soloImageView.startAnimation(slideInRight); // Slide in the new image
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {}
+        });
+    }
+
+    private void setWallpaper() {
+        WallpaperManager wallpaperManager = WallpaperManager.getInstance(getApplicationContext());
+        try {
+            wallpaperManager.setBitmap(BitmapFactory.decodeResource(getResources(), imageIds.get(currentIndex)), null, true, WallpaperManager.FLAG_SYSTEM);
+            Toast.makeText(SoloImageActivity.this, "Home screen wallpaper has been changed", Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(SoloImageActivity.this, "Failed to set wallpaper", Toast.LENGTH_LONG).show();
+        }
+    }
+}

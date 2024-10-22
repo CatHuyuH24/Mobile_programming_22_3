@@ -72,7 +72,16 @@ public class AlbumFragment extends Fragment {
 
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        dateGroupAdapter = new DateGroupAdapter(requireContext(), new ArrayList<>());
+
+        // Initialize the adapter with the OnImageClickListener
+        dateGroupAdapter = new DateGroupAdapter(requireContext(), new ArrayList<>(), new DateGroupAdapter.OnImageClickListener() {
+            @Override
+            public void onImageClick(int imageResId) {
+                // Handle image click event (e.g., start SoloImageActivity)
+                // Implement your intent logic here if needed
+            }
+        });
+
         recyclerView.setAdapter(dateGroupAdapter);
     }
 

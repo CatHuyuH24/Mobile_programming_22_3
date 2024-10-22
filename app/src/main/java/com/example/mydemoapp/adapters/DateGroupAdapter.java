@@ -17,10 +17,12 @@ import java.util.List;
 public class DateGroupAdapter extends RecyclerView.Adapter<DateGroupAdapter.DateGroupViewHolder> {
     private final List<DateGroup> dateGroups;
     private final Context context;
+    private final OnImageClickListener imageClickListener;
 
-    public DateGroupAdapter(Context context, List<DateGroup> dateGroups) {
+    public DateGroupAdapter(Context context, List<DateGroup> dateGroups, OnImageClickListener imageClickListener) {
         this.dateGroups = dateGroups;
         this.context = context;
+        this.imageClickListener = imageClickListener; // Accept listener
     }
 
     @NonNull
@@ -54,7 +56,7 @@ public class DateGroupAdapter extends RecyclerView.Adapter<DateGroupAdapter.Date
         public void bind(DateGroup dateGroup) {
             dateText.setText(dateGroup.getDate());
             recyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
-            ImageAdapter imageAdapter = new ImageAdapter(context, dateGroup.getImages());
+            ImageAdapter imageAdapter = new ImageAdapter(context, dateGroup.getImages(), imageClickListener); // Pass listener to adapter
             recyclerView.setAdapter(imageAdapter);
         }
     }
@@ -63,5 +65,9 @@ public class DateGroupAdapter extends RecyclerView.Adapter<DateGroupAdapter.Date
         this.dateGroups.clear();
         this.dateGroups.addAll(dateGroups);
         notifyDataSetChanged();
+    }
+
+    public interface OnImageClickListener {
+        void onImageClick(int imageResId);
     }
 }

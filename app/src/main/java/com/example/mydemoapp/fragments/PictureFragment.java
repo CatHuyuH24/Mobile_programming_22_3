@@ -1,5 +1,6 @@
 package com.example.mydemoapp.fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,6 +11,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.mydemoapp.activities.SoloImageActivity;
 import com.example.mydemoapp.models.DateGroup;
 import com.example.mydemoapp.utilities.ImageGrouping;
 import com.example.mydemoapp.models.ImageItem;
@@ -40,7 +42,6 @@ public class PictureFragment extends Fragment {
         imageList.add(new ImageItem(R.drawable.flower_2, "2023-10-02"));
         imageList.add(new ImageItem(R.drawable.flower_4, "2023-10-02"));
         imageList.add(new ImageItem(R.drawable.flower_5, "2023-10-03"));
-        //imageList.add(new ImageUrlItem(0, "2023-10-04", "https://www.google.com/url?sa=i&url=https%3A%2F%2Funsplash.com%2Fimages%2Fnature%2Fflower&psig=AOvVaw3uJKVJ5SFrVIReB3lKAUPz&ust=1729064236532000&source=images&cd=vfe&opi=89978449&ved=0CBEQjRxqFwoTCMiP567wj4kDFQAAAAAdAAAAABAE"));
 
         // Group images by date
         Map<String, List<ImageItem>> groupedMap = ImageGrouping.groupByDate(imageList);
@@ -49,10 +50,42 @@ public class PictureFragment extends Fragment {
             dateGroups.add(new DateGroup(date, groupedMap.get(date)));
         }
 
-        DateGroupAdapter dateGroupAdapter = new DateGroupAdapter(getContext(), dateGroups);
+        // Initialize the adapter with a click listener
+        DateGroupAdapter dateGroupAdapter = new DateGroupAdapter(getContext(), dateGroups, new DateGroupAdapter.OnImageClickListener() {
+            @Override
+            public void onImageClick(int imageResId) {
+                // Find the index of the clicked image
+                int index = -1;
+                for (int i = 0; i < imageList.size(); i++) {
+                    if (imageList.get(i).getImageId() == imageResId) {
+                        index = i;
+                        break;
+                    }
+                }
+
+                if (index != -1) {
+                    // Create an intent to start SoloImageActivity
+                    Intent intent = new Intent(getActivity(), SoloImageActivity.class);
+                    intent.putIntegerArrayListExtra("IMAGE_IDS", getImageIdsFromList(imageList));
+                    intent.putExtra("CURRENT_IMAGE_INDEX", index);
+                    startActivity(intent);
+                }
+            }
+        });
+
         recyclerView.setAdapter(dateGroupAdapter);
 
         return binding.getRoot();
+    }
+
+    private ArrayList<Integer> getImageIdsFromList(List<ImageItemInterface> imageList) {
+        ArrayList<Integer> imageIds = new ArrayList<>();
+        for (ImageItemInterface item : imageList) {
+            if (item instanceof ImageItem) {
+                imageIds.add(((ImageItem) item).getImageId());
+            }
+        }
+        return imageIds;
     }
 
     @Override
