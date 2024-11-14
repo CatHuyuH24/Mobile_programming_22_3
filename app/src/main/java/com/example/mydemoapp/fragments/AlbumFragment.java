@@ -1,11 +1,8 @@
 package com.example.mydemoapp.fragments;
 
-import android.Manifest;
 import android.app.AlertDialog;
-import android.content.pm.PackageManager;
-import android.database.Cursor;
+import android.content.Intent;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,20 +15,23 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.mydemoapp.R;
-import com.example.mydemoapp.adapters.AlbumImageAdapter;
+import com.example.mydemoapp.activities.SoloImageActivity;
+import com.example.mydemoapp.adapters.DateGroupAdapter;
 import com.example.mydemoapp.models.Album;
-import com.example.mydemoapp.models.Image;
+import com.example.mydemoapp.models.DateGroup;
+import com.example.mydemoapp.models.ImageItem;
 import com.example.mydemoapp.utilities.AlbumManager;
+import com.example.mydemoapp.utilities.ImageFetcher;
+import com.example.mydemoapp.utilities.ImageGrouping;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class AlbumFragment extends Fragment {
     private Spinner albumSpinner;
@@ -41,10 +41,9 @@ public class AlbumFragment extends Fragment {
 
     private AlbumManager albumManager;
 
-    private AlbumImageAdapter imageAdapter;
+    private List<DateGroup> dateGroups = new ArrayList<>();
+    private DateGroupAdapter dateGroupAdapter;
     private ArrayAdapter<String> albumAdapter;
-
-    private static final int REQUEST_CODE_READ_EXTERNAL_STORAGE = 1;
 
     @Nullable
     @Override
@@ -56,13 +55,6 @@ public class AlbumFragment extends Fragment {
         addAlbumButton = view.findViewById(R.id.add_album_button);
         removeAlbumButton = view.findViewById(R.id.remove_album_button);
         recyclerView = view.findViewById(R.id.recycler_view);
-
-        if (ContextCompat.checkSelfPermission(requireContext(),
-                Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(requireActivity(),
-                    new String[]{Manifest.permission.READ_MEDIA_IMAGES},
-                    REQUEST_CODE_READ_EXTERNAL_STORAGE);
-        }
 
         albumManager = new AlbumManager(requireContext());
 
@@ -82,8 +74,15 @@ public class AlbumFragment extends Fragment {
 
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        imageAdapter = new AlbumImageAdapter(requireContext(), new ArrayList<>());
-        recyclerView.setAdapter(imageAdapter);
+
+        dateGroupAdapter = new DateGroupAdapter(getContext(), dateGroups, imageResId -> {
+            Intent intent = new Intent(getActivity(), SoloImageActivity.class);
+            intent.putExtra("IMAGE_RES_ID", imageResId);
+            intent.putExtra("CURRENT_IMAGE_INDEX", 0);
+            startActivity(intent);
+        });
+
+        recyclerView.setAdapter(dateGroupAdapter);
     }
 
     private void setupAlbumSpinner() {
@@ -120,18 +119,28 @@ public class AlbumFragment extends Fragment {
         if (allAlbum == null) {
             allAlbum = new Album("All");
             albumManager.addAlbum(allAlbum);
+
+            if (albumAdapter.getCount() == 0) {
+                albumAdapter.add("All");
+            }
         }
 
-        List<Image> allImages = loadImagesFromDevice();
+        List<ImageItem> allImages = ImageFetcher.getAllImages(requireContext());
         allAlbum.setImages(allImages);
 
         displayImages(allAlbum);
     }
 
     private void displayImages(Album album) {
-        List<Image> images = album.getImages();
-        imageAdapter.setImages(images);
-        imageAdapter.notifyDataSetChanged();
+        List<ImageItem> images = album.getImages();
+
+        Map<String, List<ImageItem>> groupedMap = ImageGrouping.groupByDate(images);
+        List<DateGroup> dateGroups = new ArrayList<>();
+        for (String date : groupedMap.keySet()) {
+            dateGroups.add(new DateGroup(date, groupedMap.get(date)));
+        }
+
+        dateGroupAdapter.updateDateGroups(dateGroups);
     }
 
     private void showAddAlbumDialog() {
@@ -182,31 +191,6 @@ public class AlbumFragment extends Fragment {
         albumSpinner.setSelection(0);
 
         Toast.makeText(requireContext(), "Deleted album: " + selectedAlbum, Toast.LENGTH_SHORT).show();
-    }
-
-    public List<Image> loadImagesFromDevice() {
-        List<Image> images = new ArrayList<>();
-
-        String[] projection = {MediaStore.Images.Media.DATA};
-        Cursor cursor = requireContext().getContentResolver().query(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                projection,
-                null,
-                null,
-                MediaStore.Images.Media.DATE_ADDED + " DESC");
-
-        if (cursor != null) {
-            int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-
-            while (cursor.moveToNext()) {
-                String imagePath = cursor.getString(columnIndex);
-                Image image = new Image(imagePath);
-                images.add(image);
-            }
-            cursor.close();
-        }
-
-        return images;
     }
 
     @Override
