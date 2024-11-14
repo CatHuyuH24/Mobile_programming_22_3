@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.SET_WALLPAPER"/>
+    <uses-permission android:name="android.permission.SET_WALLPAPER" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
     <application
         android:allowBackup="true"
@@ -27,7 +28,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".activities.SoloImageActivity"/>
+        <activity android:name=".activities.SoloImageActivity" />
     </application>
 
 

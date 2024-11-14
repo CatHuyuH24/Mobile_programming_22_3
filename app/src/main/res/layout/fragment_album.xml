@@ -5,7 +5,7 @@
     android:orientation="vertical">
 
     <Spinner
-        android:id="@+id/category_spinner"
+        android:id="@+id/album_spinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="10dp"
@@ -17,16 +17,16 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
         <Button
-            android:id="@+id/add_category_button"
+            android:id="@+id/add_album_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Add new category"/>
+            android:text="Add new album"/>
 
         <Button
-            android:id="@+id/remove_category_button"
+            android:id="@+id/remove_album_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Delete this category"/>
+            android:text="Delete this album"/>
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
