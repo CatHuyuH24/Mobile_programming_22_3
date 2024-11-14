@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 public class ImageGrouping {
-    public static Map<String, List<ImageItem>> groupByDate(List<ImageItem> imageList) {
+    public static Map<String, List<ImageItem>> groupByDate(List<ImageItemInterface> imageList) {
         Map<String, List<ImageItem>> imageByDate = new HashMap<>();
         for (ImageItemInterface imageItem : imageList) {
             imageByDate.computeIfAbsent(imageItem.getDate(), k -> new ArrayList<>()).add((ImageItem) imageItem);

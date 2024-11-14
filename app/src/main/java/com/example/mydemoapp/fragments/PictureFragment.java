@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.mydemoapp.activities.SoloImageActivity;
 import com.example.mydemoapp.models.DateGroup;
+import com.example.mydemoapp.models.ImageFetcher;
 import com.example.mydemoapp.utilities.ImageGrouping;
 import com.example.mydemoapp.models.ImageItem;
 import com.example.mydemoapp.models.ImageItemInterface;
@@ -25,6 +26,7 @@ import java.util.Map;
 
 public class PictureFragment extends Fragment {
     private FragmentPictureBinding binding;
+    private List<ImageItemInterface> imageList; // Create imageList
 
     @Nullable
     @Override
@@ -35,16 +37,12 @@ public class PictureFragment extends Fragment {
         RecyclerView recyclerView = binding.recyclerView;
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        // Sample data for RecyclerView
-        List<ImageItemInterface> imageList = new ArrayList<>();
-        imageList.add(new ImageItem(R.drawable.flower_1, "2023-10-01"));
-        imageList.add(new ImageItem(R.drawable.flower_3, "2023-10-01"));
-        imageList.add(new ImageItem(R.drawable.flower_2, "2023-10-02"));
-        imageList.add(new ImageItem(R.drawable.flower_4, "2023-10-02"));
-        imageList.add(new ImageItem(R.drawable.flower_5, "2023-10-03"));
+        // Fetch images
+        List<ImageItem> imageItems = ImageFetcher.getAllImages(getContext());
+        imageList = new ArrayList<>(imageItems); // Create imageList
 
         // Group images by date
-        Map<String, List<ImageItem>> groupedMap = ImageGrouping.groupByDate(imageList);
+        Map<String, List<ImageItem>> groupedMap = ImageGrouping.groupByDate(imageItems);
         List<DateGroup> dateGroups = new ArrayList<>();
         for (String date : groupedMap.keySet()) {
             dateGroups.add(new DateGroup(date, groupedMap.get(date)));
