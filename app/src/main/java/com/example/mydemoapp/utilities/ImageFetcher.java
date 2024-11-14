@@ -1,9 +1,12 @@
-package com.example.mydemoapp.models;
+package com.example.mydemoapp.utilities;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
+
+import com.example.mydemoapp.models.ImageItem;
+
 import java.util.ArrayList;
 import java.util.List;
 
