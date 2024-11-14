@@ -1,203 +1,212 @@
 package com.example.mydemoapp.fragments;
 
-import static android.content.Context.MODE_PRIVATE;
-
+import android.Manifest;
 import android.app.AlertDialog;
-import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-import com.example.mydemoapp.models.DateGroup;
-import com.example.mydemoapp.adapters.DateGroupAdapter;
-import com.example.mydemoapp.utilities.ImageGrouping;
-import com.example.mydemoapp.models.ImageItem;
-import com.example.mydemoapp.models.ImageItemInterface;
-import com.example.mydemoapp.R;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
-import java.util.HashMap;
-import java.util.Set;
-
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.mydemoapp.R;
+import com.example.mydemoapp.adapters.AlbumImageAdapter;
+import com.example.mydemoapp.models.Album;
+import com.example.mydemoapp.models.Image;
+import com.example.mydemoapp.utilities.AlbumManager;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class AlbumFragment extends Fragment {
-    private Spinner categorySpinner;
-    private Button addCategoryButton;
-    private Button removeCategoryButton;
+    private Spinner albumSpinner;
+    private Button addAlbumButton;
+    private Button removeAlbumButton;
     private RecyclerView recyclerView;
 
-    private ArrayAdapter<String> spinnerAdapter;
-    private DateGroupAdapter dateGroupAdapter;
-    private HashMap<String, List<DateGroup>> categoryImages = new HashMap<>();
-    private List<String> categories = new ArrayList<>();
+    private AlbumManager albumManager;
 
-    private static final String PREFS_NAME = "PhotoAlbumPrefs";
-    private static final String KEY_CATEGORIES = "categories";
+    private AlbumImageAdapter imageAdapter;
+    private ArrayAdapter<String> albumAdapter;
+
+    private static final int REQUEST_CODE_READ_EXTERNAL_STORAGE = 1;
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_album, container, false);
 
-        categorySpinner = view.findViewById(R.id.category_spinner);
-        addCategoryButton = view.findViewById(R.id.add_category_button);
-        removeCategoryButton = view.findViewById(R.id.remove_category_button);
+        albumSpinner = view.findViewById(R.id.album_spinner);
+        addAlbumButton = view.findViewById(R.id.add_album_button);
+        removeAlbumButton = view.findViewById(R.id.remove_album_button);
         recyclerView = view.findViewById(R.id.recycler_view);
 
+        if (ContextCompat.checkSelfPermission(requireContext(),
+                Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(requireActivity(),
+                    new String[]{Manifest.permission.READ_MEDIA_IMAGES},
+                    REQUEST_CODE_READ_EXTERNAL_STORAGE);
+        }
+
+        albumManager = new AlbumManager(requireContext());
+
         setupRecyclerView();
-        setupCategorySpinner();
+        setupAlbumSpinner();
+        displayAllAlbum();
 
-        loadCategoriesFromPreferences();
-
-        addCategoryButton.setOnClickListener(v -> showAddCategoryDialog());
-        removeCategoryButton.setOnClickListener(v -> removeCategory());
+        addAlbumButton.setOnClickListener(v -> showAddAlbumDialog());
+        removeAlbumButton.setOnClickListener(v -> removeAlbum());
 
         return view;
     }
 
+    private List<Album> getAlbums() {
+        return albumManager.loadAlbums();
+    }
+
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        imageAdapter = new AlbumImageAdapter(requireContext(), new ArrayList<>());
+        recyclerView.setAdapter(imageAdapter);
+    }
 
-        // Initialize the adapter with the OnImageClickListener
-        dateGroupAdapter = new DateGroupAdapter(requireContext(), new ArrayList<>(), new DateGroupAdapter.OnImageClickListener() {
+    private void setupAlbumSpinner() {
+        List<String> albumNames = new ArrayList<>();
+        for (Album album : getAlbums()) {
+            albumNames.add(album.getName());
+        }
+
+        albumAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, albumNames);
+        albumAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        albumSpinner.setAdapter(albumAdapter);
+
+        albumSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
-            public void onImageClick(int imageResId) {
-                // Handle image click event (e.g., start SoloImageActivity)
-                // Implement your intent logic here if needed
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position != 0) {
+                    String albumName = albumAdapter.getItem(position);
+                    Album selectedAlbum = albumManager.getAlbumByName(albumName);
+                    displayImages(selectedAlbum);
+                } else {
+                    displayAllAlbum();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
             }
         });
-
-        recyclerView.setAdapter(dateGroupAdapter);
     }
 
-    private void setupCategorySpinner() {
-        categories.add("All");
+    private void displayAllAlbum() {
+        Album allAlbum = albumManager.getAlbumByName("All");
 
-        spinnerAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, categories);
-        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        categorySpinner.setAdapter(spinnerAdapter);
-
-        categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                String currentCategory = categories.get(position);
-                displayImagesForCategory(currentCategory);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parentView) {
-            }
-        });
-    }
-
-    private void loadCategoriesFromPreferences() {
-        SharedPreferences preferences = requireContext().getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        Set<String> categorySet = preferences.getStringSet(KEY_CATEGORIES, new HashSet<>());
-
-        categories.clear();
-        categories.addAll(categorySet);
-
-        if (!categories.contains("A")) {
-            if (!categories.contains("All")) {
-                categories.add("All");
-            }
-            initializeSampleData();
-            spinnerAdapter.notifyDataSetChanged();
-            saveCategoriesToPreferences();
-        } else {
-            displayImagesForCategory("All");
+        if (allAlbum == null) {
+            allAlbum = new Album("All");
+            albumManager.addAlbum(allAlbum);
         }
 
-        spinnerAdapter.notifyDataSetChanged();
+        List<Image> allImages = loadImagesFromDevice();
+        allAlbum.setImages(allImages);
+
+        displayImages(allAlbum);
     }
 
-    private void displayImagesForCategory(String category) {
-        List<DateGroup> dateGroupList = categoryImages.get(category);
-
-        if (dateGroupList != null && !dateGroupList.isEmpty()) {
-            dateGroupAdapter.updateDateGroups(dateGroupList);
-        } else {
-            dateGroupAdapter.updateDateGroups(new ArrayList<>());
-        }
+    private void displayImages(Album album) {
+        List<Image> images = album.getImages();
+        imageAdapter.setImages(images);
+        imageAdapter.notifyDataSetChanged();
     }
 
-    private void initializeSampleData() {
-        List<ImageItemInterface> imageList = new ArrayList<>();
-        imageList.add(new ImageItem(R.drawable.flower_1, "2023-10-01"));
-        imageList.add(new ImageItem(R.drawable.flower_3, "2023-10-01"));
-        imageList.add(new ImageItem(R.drawable.flower_2, "2023-10-02"));
-        imageList.add(new ImageItem(R.drawable.flower_4, "2023-10-02"));
-        imageList.add(new ImageItem(R.drawable.flower_5, "2023-10-03"));
-
-        Map<String, List<ImageItem>> groupedMap = ImageGrouping.groupByDate(imageList);
-        List<DateGroup> dateGroups = new ArrayList<>();
-        for (String date : groupedMap.keySet()) {
-            dateGroups.add(new DateGroup(date, groupedMap.get(date)));
-        }
-
-        categoryImages.put("All", dateGroups);
-    }
-
-    private void showAddCategoryDialog() {
+    private void showAddAlbumDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        builder.setTitle("Add new category");
+        builder.setTitle("Add new album");
 
         final EditText input = new EditText(requireContext());
         builder.setView(input);
 
         builder.setPositiveButton("Ok", (dialog, which) -> {
-            String newCategory = input.getText().toString();
-            if (!newCategory.isEmpty() && !categories.contains(newCategory)) {
-                categories.add(newCategory);
-                spinnerAdapter.notifyDataSetChanged();
-                saveCategoriesToPreferences();
+            String albumName = input.getText().toString();
+            if (albumName.isEmpty()) {
+                Toast.makeText(requireContext(), "Album name cannot be empty", Toast.LENGTH_SHORT).show();
+                return;
             }
+
+            for (Album album : getAlbums()) {
+                if (album.getName().equals(albumName)) {
+                    Toast.makeText(requireContext(), "Album already exists", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+            }
+
+            Album newAlbum = new Album(albumName, new ArrayList<>());
+            albumManager.addAlbum(newAlbum);
+
+            albumAdapter.add(albumName);
+            albumAdapter.notifyDataSetChanged();
+            albumSpinner.setSelection(albumAdapter.getCount() - 1);
         });
 
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
-
         builder.show();
     }
 
-    private void removeCategory() {
-        String currentCategory = categorySpinner.getSelectedItem().toString();
+    private void removeAlbum() {
+        String selectedAlbum = albumSpinner.getSelectedItem().toString();
 
-        if (currentCategory.equals("All")) {
-            Toast.makeText(requireContext(), "Cannot delete category 'All'", Toast.LENGTH_SHORT).show();
+        if (selectedAlbum.equals("All")) {
+            Toast.makeText(requireContext(), "Cannot delete album 'All'", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        categories.remove(currentCategory);
-        categoryImages.remove(currentCategory);
+        albumManager.removeAlbum(selectedAlbum);
 
-        spinnerAdapter.notifyDataSetChanged();
-        saveCategoriesToPreferences();
+        albumAdapter.remove(selectedAlbum);
+        albumAdapter.notifyDataSetChanged();
+        albumSpinner.setSelection(0);
 
-        Toast.makeText(requireContext(), "Deleted category: " + currentCategory, Toast.LENGTH_SHORT).show();
+        Toast.makeText(requireContext(), "Deleted album: " + selectedAlbum, Toast.LENGTH_SHORT).show();
     }
 
-    private void saveCategoriesToPreferences() {
-        SharedPreferences preferences = requireContext().getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
+    public List<Image> loadImagesFromDevice() {
+        List<Image> images = new ArrayList<>();
 
-        Set<String> categorySet = new HashSet<>(categories);
-        editor.putStringSet(KEY_CATEGORIES, categorySet);
-        editor.apply();
+        String[] projection = {MediaStore.Images.Media.DATA};
+        Cursor cursor = requireContext().getContentResolver().query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                projection,
+                null,
+                null,
+                MediaStore.Images.Media.DATE_ADDED + " DESC");
+
+        if (cursor != null) {
+            int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+
+            while (cursor.moveToNext()) {
+                String imagePath = cursor.getString(columnIndex);
+                Image image = new Image(imagePath);
+                images.add(image);
+            }
+            cursor.close();
+        }
+
+        return images;
     }
 
     @Override
