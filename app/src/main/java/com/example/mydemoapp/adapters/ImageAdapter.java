@@ -5,12 +5,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.example.mydemoapp.models.ImageItem;
 import com.example.mydemoapp.R;
+import com.example.mydemoapp.models.ImageItem;
 
 import java.util.List;
 
@@ -59,7 +60,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         }
 
         public void bind(ImageItem imageItem) {
-            Glide.with(context).load(imageItem.getImageId()).into(imageView);
+            Glide.with(context).load(imageItem.getImagePath()).into(imageView);
         }
     }
 }

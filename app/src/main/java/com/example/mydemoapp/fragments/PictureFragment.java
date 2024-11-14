@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -12,21 +13,20 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.mydemoapp.activities.SoloImageActivity;
-import com.example.mydemoapp.models.DateGroup;
-import com.example.mydemoapp.models.ImageFetcher;
-import com.example.mydemoapp.utilities.ImageGrouping;
-import com.example.mydemoapp.models.ImageItem;
-import com.example.mydemoapp.models.ImageItemInterface;
-import com.example.mydemoapp.R;
 import com.example.mydemoapp.adapters.DateGroupAdapter;
 import com.example.mydemoapp.databinding.FragmentPictureBinding;
+import com.example.mydemoapp.models.DateGroup;
+import com.example.mydemoapp.models.ImageItem;
+import com.example.mydemoapp.utilities.ImageFetcher;
+import com.example.mydemoapp.utilities.ImageGrouping;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class PictureFragment extends Fragment {
     private FragmentPictureBinding binding;
-    private List<ImageItemInterface> imageList; // Create imageList
+    private List<ImageItem> imageList; // Create imageList
 
     @Nullable
     @Override
@@ -76,12 +76,11 @@ public class PictureFragment extends Fragment {
         return binding.getRoot();
     }
 
-    private ArrayList<Integer> getImageIdsFromList(List<ImageItemInterface> imageList) {
+    private ArrayList<Integer> getImageIdsFromList(List<ImageItem> imageList) {
         ArrayList<Integer> imageIds = new ArrayList<>();
-        for (ImageItemInterface item : imageList) {
-            if (item instanceof ImageItem) {
-                imageIds.add(((ImageItem) item).getImageId());
-            }
+        for (ImageItem item : imageList) {
+            imageIds.add(item.getImageId());
+
         }
         return imageIds;
     }
