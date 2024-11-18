@@ -22,7 +22,7 @@ public class SoloImageActivity extends AppCompatActivity {
     private ImageView soloImageView;
     private TextView tvTitle;
     private Button backBtn, nextBtn, previousBtn, setBackgroundBtn;
-    private ArrayList<Integer> imageIds;
+    private ArrayList<String> imagePaths;
     private int currentIndex;
 
     @Override
@@ -38,10 +38,10 @@ public class SoloImageActivity extends AppCompatActivity {
         setBackgroundBtn = findViewById(R.id.btn_solo_set_background);
 
         // Get the data from the intent
-        imageIds = getIntent().getIntegerArrayListExtra("IMAGE_IDS");
+        imagePaths = getIntent().getStringArrayListExtra("IMAGE_PATHS");
         currentIndex = getIntent().getIntExtra("CURRENT_IMAGE_INDEX", -1);
 
-        if (imageIds != null && currentIndex != -1) {
+        if (imagePaths != null && currentIndex != -1) {
             loadImage(currentIndex); // Load the current image
         }
 
@@ -62,7 +62,7 @@ public class SoloImageActivity extends AppCompatActivity {
 
         // Next button with slide animation
         nextBtn.setOnClickListener(view -> {
-            if (currentIndex < imageIds.size() - 1) {
+            if (currentIndex < imagePaths.size() - 1) {
                 slideOutLeftAndLoadImage(++currentIndex); // Slide out left and load next image
             } else {
                 Toast.makeText(this, "This is the last image", Toast.LENGTH_SHORT).show();
@@ -72,8 +72,9 @@ public class SoloImageActivity extends AppCompatActivity {
 
     private void loadImage(int index) {
         // Load the image using Glide
-        Glide.with(this).load(imageIds.get(index)).into(soloImageView);
-        tvTitle.setText("Image ID: " + imageIds.get(index)); // Update title
+        String imagePath = imagePaths.get(index);
+        Glide.with(this).load(imagePath).into(soloImageView);
+        tvTitle.setText("Image Path: " + imagePath); // Update title
     }
 
     private void slideOutLeftAndLoadImage(int index) {
@@ -119,7 +120,8 @@ public class SoloImageActivity extends AppCompatActivity {
     private void setWallpaper() {
         WallpaperManager wallpaperManager = WallpaperManager.getInstance(getApplicationContext());
         try {
-            wallpaperManager.setBitmap(BitmapFactory.decodeResource(getResources(), imageIds.get(currentIndex)), null, true, WallpaperManager.FLAG_SYSTEM);
+            String imagePath = imagePaths.get(currentIndex);
+            wallpaperManager.setBitmap(BitmapFactory.decodeFile(imagePath), null, true, WallpaperManager.FLAG_SYSTEM);
             Toast.makeText(SoloImageActivity.this, "Home screen wallpaper has been changed", Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             e.printStackTrace();

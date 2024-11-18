@@ -68,6 +68,6 @@ public class DateGroupAdapter extends RecyclerView.Adapter<DateGroupAdapter.Date
     }
 
     public interface OnImageClickListener {
-        void onImageClick(int imageResId);
+        void onImageClick(String imagePath);
     }
 }

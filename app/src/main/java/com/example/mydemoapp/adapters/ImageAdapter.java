@@ -54,7 +54,10 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
             // Set onClickListener to handle image clicks
             itemView.setOnClickListener(view -> {
                 if (imageClickListener != null) {
-                    imageClickListener.onImageClick(images.get(getAdapterPosition()).getImageId());
+                    int position = getBindingAdapterPosition();
+                    if(position != RecyclerView.NO_POSITION) {
+                        imageClickListener.onImageClick(images.get(position).getImagePath());
+                    }
                 }
             });
         }
