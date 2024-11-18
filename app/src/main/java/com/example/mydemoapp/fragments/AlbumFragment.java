@@ -34,17 +34,21 @@ import java.util.List;
 import java.util.Map;
 
 public class AlbumFragment extends Fragment {
+    // UI components
     private Spinner albumSpinner;
     private Button addAlbumButton;
     private Button removeAlbumButton;
     private RecyclerView recyclerView;
 
+    // Data
+    private List<DateGroup> dateGroups = new ArrayList<>();
     private AlbumManager albumManager;
 
-    private List<DateGroup> dateGroups = new ArrayList<>();
+    // Adapter
     private DateGroupAdapter dateGroupAdapter;
     private ArrayAdapter<String> albumAdapter;
 
+    // Constructor
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -68,10 +72,12 @@ public class AlbumFragment extends Fragment {
         return view;
     }
 
+    // Get all albums from storage
     private List<Album> getAlbums() {
         return albumManager.loadAlbums();
     }
 
+    // Setup recycler view for displaying images
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
@@ -85,6 +91,7 @@ public class AlbumFragment extends Fragment {
         recyclerView.setAdapter(dateGroupAdapter);
     }
 
+    // Setup album spinner for selecting albums
     private void setupAlbumSpinner() {
         List<String> albumNames = new ArrayList<>();
         for (Album album : getAlbums()) {
@@ -113,6 +120,7 @@ public class AlbumFragment extends Fragment {
         });
     }
 
+    // Display all images in the 'All' album
     private void displayAllAlbum() {
         Album allAlbum = albumManager.getAlbumByName("All");
 
@@ -131,6 +139,7 @@ public class AlbumFragment extends Fragment {
         displayImages(allAlbum);
     }
 
+    // Display images in the selected album
     private void displayImages(Album album) {
         List<ImageItem> images = album.getImages();
 
@@ -143,6 +152,7 @@ public class AlbumFragment extends Fragment {
         dateGroupAdapter.updateDateGroups(dateGroups);
     }
 
+    // Show dialog for adding new album to storage
     private void showAddAlbumDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
         builder.setTitle("Add new album");
@@ -176,6 +186,7 @@ public class AlbumFragment extends Fragment {
         builder.show();
     }
 
+    // Remove selected album from storage
     private void removeAlbum() {
         String selectedAlbum = albumSpinner.getSelectedItem().toString();
 
@@ -193,6 +204,7 @@ public class AlbumFragment extends Fragment {
         Toast.makeText(requireContext(), "Deleted album: " + selectedAlbum, Toast.LENGTH_SHORT).show();
     }
 
+    // Clean up
     @Override
     public void onDestroyView() {
         super.onDestroyView();
