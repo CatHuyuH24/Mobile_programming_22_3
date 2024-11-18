@@ -1,11 +1,11 @@
 package com.example.mydemoapp.activities;
 
 import android.app.WallpaperManager;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
@@ -123,18 +123,15 @@ public class SoloImageActivity extends AppCompatActivity {
     private void setWallpaper() {
         WallpaperManager wallpaperManager = WallpaperManager.getInstance(getApplicationContext());
         try {
-            String imagePath = imagePaths.get(currentIndex);
-//            Toast.makeText(this, "Set wallpaper: Image path: "+imagePath, Toast.LENGTH_LONG).show();
 
-//            Uri imageUri = Uri.parse(imagePath); // Ensure imagePath is a valid URI
-//            Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
-//            wallpaperManager.setBitmap(bitmap, null, true, WallpaperManager.FLAG_SYSTEM);
+            Uri imageUri = Uri.parse(imagePaths.get(currentIndex));
+            Bitmap bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
+            wallpaperManager.setBitmap(bitmap, null, true, WallpaperManager.FLAG_SYSTEM);
 
-            wallpaperManager.setBitmap(BitmapFactory.decodeFile(imagePath), null, true, WallpaperManager.FLAG_SYSTEM);
             Toast.makeText(SoloImageActivity.this, "Home screen wallpaper has been changed", Toast.LENGTH_LONG).show();
         } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(SoloImageActivity.this, "Failed to set wallpaper", Toast.LENGTH_LONG).show();
+            Log.e("SoloImageActivity", "Error occurred while setting wallpaper", e);
+            Toast.makeText(SoloImageActivity.this, "Failed to set wallpaper: "+ e, Toast.LENGTH_LONG).show();
         }
     }
 }
