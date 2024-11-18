@@ -1,5 +1,6 @@
 package com.example.mydemoapp.utilities;
 
+import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
@@ -15,7 +16,7 @@ public class ImageFetcher {
         List<ImageItem> imageItems = new ArrayList<>();
         Uri uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
         String[] projection = {
-                MediaStore.Images.Media.DATA,
+                MediaStore.Images.Media._ID,
                 MediaStore.Images.Media.DATE_TAKEN
         };
         String sortOrder = MediaStore.Images.Media.DATE_ADDED + " DESC";
@@ -23,9 +24,10 @@ public class ImageFetcher {
 
         if (cursor != null) {
             while (cursor.moveToNext()) {
-                String path = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
+                long id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID));
                 long dateTaken = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN));
-                imageItems.add(new ImageItem(path, dateTaken));
+                Uri contentUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
+                imageItems.add(new ImageItem(contentUri.toString(), dateTaken));
             }
             cursor.close();
         }
