@@ -28,4 +28,12 @@ public class Album {
     public void setImages(List<ImageItem> images) {
         this.images = images;
     }
+
+    public void addImage(ImageItem image) {
+        images.add(image);
+    }
+
+    public void removeImage(ImageItem image) {
+        images.remove(image);
+    }
 }
