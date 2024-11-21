@@ -41,11 +41,11 @@ public class AlbumFragment extends Fragment {
     private RecyclerView recyclerView;
 
     // Data
-    private List<DateGroup> dateGroups = new ArrayList<>();
+    private List<DateGroup> dateGroups;
     private AlbumManager albumManager;
+    private String selectedAlbumName;
 
     // Adapter
-    private DateGroupAdapter dateGroupAdapter;
     private ArrayAdapter<String> albumAdapter;
 
     // Constructor
@@ -61,6 +61,8 @@ public class AlbumFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recycler_view);
 
         albumManager = new AlbumManager(requireContext());
+        dateGroups = new ArrayList<>();
+        selectedAlbumName = "All";
 
         setupRecyclerView();
         setupAlbumSpinner();
@@ -81,14 +83,33 @@ public class AlbumFragment extends Fragment {
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        dateGroupAdapter = new DateGroupAdapter(getContext(), dateGroups, imageResId -> {
-            Intent intent = new Intent(getActivity(), SoloImageActivity.class);
-            intent.putExtra("IMAGE_RES_ID", imageResId);
-            intent.putExtra("CURRENT_IMAGE_INDEX", 0);
-            startActivity(intent);
+        DateGroupAdapter dateGroupAdapter = new DateGroupAdapter(getContext(), dateGroups, imagePath -> {
+            // Find the index of the clicked image
+            ArrayList<String> imagePaths = albumManager.getImagePathsFromAlbum(selectedAlbumName);
+            int index = -1;
+            for (int i = 0; i < imagePaths.size(); i++) {
+                if (imagePaths.get(i).equals(imagePath)) {
+                    index = i;
+                    break;
+                }
+            }
+
+            if (index != -1) {
+                // Create an intent to start SoloImageActivity
+                Intent intent = new Intent(getActivity(), SoloImageActivity.class);
+                intent.putStringArrayListExtra("IMAGE_PATHS", imagePaths);
+                intent.putExtra("CURRENT_IMAGE_INDEX", index);
+                startActivity(intent);
+            }
         });
 
         recyclerView.setAdapter(dateGroupAdapter);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        displayImages(albumManager.getAlbumByName(selectedAlbumName));
     }
 
     // Setup album spinner for selecting albums
@@ -105,9 +126,10 @@ public class AlbumFragment extends Fragment {
         albumSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                selectedAlbumName = albumAdapter.getItem(position);
+
                 if (position != 0) {
-                    String albumName = albumAdapter.getItem(position);
-                    Album selectedAlbum = albumManager.getAlbumByName(albumName);
+                    Album selectedAlbum = albumManager.getAlbumByName(selectedAlbumName);
                     displayImages(selectedAlbum);
                 } else {
                     displayAllAlbum();
@@ -123,18 +145,20 @@ public class AlbumFragment extends Fragment {
     // Display all images in the 'All' album
     private void displayAllAlbum() {
         Album allAlbum = albumManager.getAlbumByName("All");
+        List<ImageItem> allImages = ImageFetcher.getAllImages(requireContext());
 
         if (allAlbum == null) {
             allAlbum = new Album("All");
+            allAlbum.setImages(allImages);
             albumManager.addAlbum(allAlbum);
 
             if (albumAdapter.getCount() == 0) {
                 albumAdapter.add("All");
             }
+        } else {
+            allAlbum.setImages(allImages);
+            albumManager.updateAlbum(allAlbum);
         }
-
-        List<ImageItem> allImages = ImageFetcher.getAllImages(requireContext());
-        allAlbum.setImages(allImages);
 
         displayImages(allAlbum);
     }
@@ -144,12 +168,12 @@ public class AlbumFragment extends Fragment {
         List<ImageItem> images = album.getImages();
 
         Map<String, List<ImageItem>> groupedMap = ImageGrouping.groupByDate(images);
-        List<DateGroup> dateGroups = new ArrayList<>();
+        dateGroups.clear();
         for (String date : groupedMap.keySet()) {
             dateGroups.add(new DateGroup(date, groupedMap.get(date)));
         }
 
-        dateGroupAdapter.updateDateGroups(dateGroups);
+        recyclerView.getAdapter().notifyDataSetChanged();
     }
 
     // Show dialog for adding new album to storage
