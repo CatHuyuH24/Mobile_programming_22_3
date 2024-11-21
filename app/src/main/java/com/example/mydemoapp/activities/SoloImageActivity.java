@@ -8,22 +8,27 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 import com.example.mydemoapp.R;
+import com.example.mydemoapp.models.Album;
+import com.example.mydemoapp.utilities.AlbumManager;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class SoloImageActivity extends AppCompatActivity {
     private ImageView soloImageView;
     private TextView tvTitle;
-    private Button backBtn, nextBtn, previousBtn, setBackgroundBtn;
+    private Button backBtn, nextBtn, previousBtn, setBackgroundBtn, addToAlbumBtn, deleteFromAlbumBtn;
+
     private ArrayList<String> imagePaths;
     private int currentIndex;
 
@@ -38,6 +43,8 @@ public class SoloImageActivity extends AppCompatActivity {
         nextBtn = findViewById(R.id.btn_solo_next);
         previousBtn = findViewById(R.id.btn_solo_previous);
         setBackgroundBtn = findViewById(R.id.btn_solo_set_background);
+        addToAlbumBtn = findViewById(R.id.btn_solo_add_to_album);
+        deleteFromAlbumBtn = findViewById(R.id.btn_solo_delete_from_album);
 
         // Get the data from the intent
         imagePaths = getIntent().getStringArrayListExtra("IMAGE_PATHS");
@@ -70,6 +77,12 @@ public class SoloImageActivity extends AppCompatActivity {
                 Toast.makeText(this, "This is the last image", Toast.LENGTH_SHORT).show();
             }
         });
+
+        // Add to album button
+        addToAlbumBtn.setOnClickListener(view -> addToAlbum());
+
+        // Delete from album button
+        deleteFromAlbumBtn.setOnClickListener(view -> deleteFromAlbum());
     }
 
     private void loadImage(int index) {
@@ -87,7 +100,8 @@ public class SoloImageActivity extends AppCompatActivity {
         soloImageView.startAnimation(slideOutLeft);
         slideOutLeft.setAnimationListener(new Animation.AnimationListener() {
             @Override
-            public void onAnimationStart(Animation animation) {}
+            public void onAnimationStart(Animation animation) {
+            }
 
             @Override
             public void onAnimationEnd(Animation animation) {
@@ -96,7 +110,8 @@ public class SoloImageActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onAnimationRepeat(Animation animation) {}
+            public void onAnimationRepeat(Animation animation) {
+            }
         });
     }
 
@@ -107,7 +122,8 @@ public class SoloImageActivity extends AppCompatActivity {
         soloImageView.startAnimation(slideOutRight);
         slideOutRight.setAnimationListener(new Animation.AnimationListener() {
             @Override
-            public void onAnimationStart(Animation animation) {}
+            public void onAnimationStart(Animation animation) {
+            }
 
             @Override
             public void onAnimationEnd(Animation animation) {
@@ -116,7 +132,8 @@ public class SoloImageActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onAnimationRepeat(Animation animation) {}
+            public void onAnimationRepeat(Animation animation) {
+            }
         });
     }
 
@@ -131,7 +148,59 @@ public class SoloImageActivity extends AppCompatActivity {
             Toast.makeText(SoloImageActivity.this, "Home screen wallpaper has been changed", Toast.LENGTH_LONG).show();
         } catch (Exception e) {
             Log.e("SoloImageActivity", "Error occurred while setting wallpaper", e);
-            Toast.makeText(SoloImageActivity.this, "Failed to set wallpaper: "+ e, Toast.LENGTH_LONG).show();
+            Toast.makeText(SoloImageActivity.this, "Failed to set wallpaper: " + e, Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void addToAlbum() {
+        AlbumManager albumManager = new AlbumManager(this);
+        List<Album> albums = albumManager.loadAlbums();
+        List<String> albumNames = new ArrayList<>();
+
+        for (Album album : albums) {
+            if (album.getName().equals("All")) {
+                continue;
+            }
+            albumNames.add(album.getName());
+        }
+
+        if (albumNames.isEmpty()) {
+            Toast.makeText(this, "No albums found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Show dialog to select an album to add the image to
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Select an album")
+                .setItems(albumNames.toArray(new String[0]), (dialog, which) -> {
+                    try {
+                        String selectedAlbumName = albumNames.get(which);
+                        albumManager.addImageToAlbum(selectedAlbumName, imagePaths.get(currentIndex));
+                        Toast.makeText(this, "Image added to album: " + selectedAlbumName, Toast.LENGTH_SHORT).show();
+                    } catch (IllegalArgumentException e) {
+                        Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .show();
+    }
+
+    private void deleteFromAlbum() {
+        AlbumManager albumManager = new AlbumManager(this);
+        List<String> albumNames = albumManager.getAlbumNames(imagePaths.get(currentIndex));
+
+        if (albumNames.isEmpty()) {
+            Toast.makeText(this, "This image is not in any album", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Show dialog to select an album to delete the image from
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Select an album")
+                .setItems(albumNames.toArray(new String[0]), (dialog, which) -> {
+                    String selectedAlbumName = albumNames.get(which);
+                    albumManager.removeImageFromAlbum(selectedAlbumName, imagePaths.get(currentIndex));
+                    Toast.makeText(this, "Image deleted from album: " + selectedAlbumName, Toast.LENGTH_SHORT).show();
+                })
+                .show();
     }
 }
