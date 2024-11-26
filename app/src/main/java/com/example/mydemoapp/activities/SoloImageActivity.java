@@ -16,6 +16,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.target.Target;
 import com.example.mydemoapp.R;
 import com.example.mydemoapp.models.Album;
 import com.example.mydemoapp.utilities.AlbumManager;
@@ -88,7 +90,14 @@ public class SoloImageActivity extends AppCompatActivity {
     private void loadImage(int index) {
         // Load the image using Glide
         String imagePath = imagePaths.get(index);
-        Glide.with(this).load(imagePath).into(soloImageView);
+
+        Glide.with(this)
+                .load(imagePath)
+                .thumbnail(0.1f) // Load images first with low quality
+                .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC) // Reasonable image cache
+                .override(Target.SIZE_ORIGINAL) // Resize image if necessary
+                .into(soloImageView);
+        
         String tempTitle = "Image path: " + imagePath;
         tvTitle.setText(tempTitle); // Update title
     }
