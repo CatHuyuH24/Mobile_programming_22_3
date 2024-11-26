@@ -144,24 +144,37 @@ public class AlbumFragment extends Fragment {
 
     // Display all images in the 'All' album
     private void displayAllAlbum() {
-        Album allAlbum = albumManager.getAlbumByName("All");
-        List<ImageItem> allImages = ImageFetcher.getAllImages(requireContext());
+        ImageFetcher.getAllImagesAsync(requireContext(), new ImageFetcher.FetchImagesCallback() {
+            @Override
+            public void onImagesFetched(List<ImageItem> allImages) {
+                requireActivity().runOnUiThread(() -> {
+                    Album allAlbum = albumManager.getAlbumByName("All");
 
-        if (allAlbum == null) {
-            allAlbum = new Album("All");
-            allAlbum.setImages(allImages);
-            albumManager.addAlbum(allAlbum);
+                    if (allAlbum == null) {
+                        allAlbum = new Album("All");
+                        allAlbum.setImages(allImages);
+                        albumManager.addAlbum(allAlbum);
 
-            if (albumAdapter.getCount() == 0) {
-                albumAdapter.add("All");
+                        if (albumAdapter.getCount() == 0) {
+                            albumAdapter.add("All");
+                        }
+                    } else {
+                        allAlbum.setImages(allImages);
+                        albumManager.updateAlbum(allAlbum);
+                    }
+
+                    displayImages(allAlbum);
+                });
             }
-        } else {
-            allAlbum.setImages(allImages);
-            albumManager.updateAlbum(allAlbum);
-        }
 
-        displayImages(allAlbum);
+            @Override
+            public void onError(Exception e) {
+                requireActivity().runOnUiThread(() ->
+                        Toast.makeText(requireContext(), "Error fetching images: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+            }
+        });
     }
+
 
     // Display images in the selected album
     private void displayImages(Album album) {
