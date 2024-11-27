@@ -1,0 +1,59 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/news_app_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="NEWS APP"
+        android:textSize="20sp"
+        android:layout_gravity="center"
+        android:padding="10dp" />
+
+    <GridLayout
+        android:id="@+id/news_sources_grid"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:columnCount="2"
+        android:rowCount="2"
+        android:padding="10dp"
+        android:useDefaultMargins="true">
+
+        <Button
+            android:id="@+id/thanh_nien_button"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:text="@string/app_1" />
+
+        <Button
+            android:id="@+id/vn_express_button"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:text="@string/app_2" />
+
+        <Button
+            android:id="@+id/dan_tri_button"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:text="@string/app_3" />
+
+        <Button
+            android:id="@+id/tuoi_tre_button"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_columnWeight="1"
+            android:layout_rowWeight="1"
+            android:text="@string/app_4" />
+
+    </GridLayout>
+</LinearLayout>
