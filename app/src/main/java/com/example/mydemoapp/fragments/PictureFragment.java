@@ -51,11 +51,11 @@ public class PictureFragment extends Fragment {
         // Initialize the adapter with a click listener
         DateGroupAdapter dateGroupAdapter = new DateGroupAdapter(getContext(), dateGroups, new DateGroupAdapter.OnImageClickListener() {
             @Override
-            public void onImageClick(int imageResId) {
+            public void onImageClick(String imagePath) {
                 // Find the index of the clicked image
                 int index = -1;
                 for (int i = 0; i < imageList.size(); i++) {
-                    if (imageList.get(i).getImageId() == imageResId) {
+                    if (imageList.get(i).getImagePath().equals(imagePath)) {
                         index = i;
                         break;
                     }
@@ -64,7 +64,7 @@ public class PictureFragment extends Fragment {
                 if (index != -1) {
                     // Create an intent to start SoloImageActivity
                     Intent intent = new Intent(getActivity(), SoloImageActivity.class);
-                    intent.putIntegerArrayListExtra("IMAGE_IDS", getImageIdsFromList(imageList));
+                    intent.putStringArrayListExtra("IMAGE_PATHS", getImagePathsFromList(imageList));
                     intent.putExtra("CURRENT_IMAGE_INDEX", index);
                     startActivity(intent);
                 }
@@ -76,13 +76,13 @@ public class PictureFragment extends Fragment {
         return binding.getRoot();
     }
 
-    private ArrayList<Integer> getImageIdsFromList(List<ImageItem> imageList) {
-        ArrayList<Integer> imageIds = new ArrayList<>();
+    private ArrayList<String> getImagePathsFromList(List<ImageItem> imageList) {
+        ArrayList<String> imagePaths = new ArrayList<>();
         for (ImageItem item : imageList) {
-            imageIds.add(item.getImageId());
+            imagePaths.add(item.getImagePath());
 
         }
-        return imageIds;
+        return imagePaths;
     }
 
     @Override

@@ -61,13 +61,7 @@ public class DateGroupAdapter extends RecyclerView.Adapter<DateGroupAdapter.Date
         }
     }
 
-    public void updateDateGroups(List<DateGroup> dateGroups) {
-        this.dateGroups.clear();
-        this.dateGroups.addAll(dateGroups);
-        notifyDataSetChanged();
-    }
-
     public interface OnImageClickListener {
-        void onImageClick(int imageResId);
+        void onImageClick(String imagePath);
     }
 }
