@@ -10,6 +10,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.target.Target;
 import com.example.mydemoapp.R;
 import com.example.mydemoapp.models.ImageItem;
 
@@ -55,7 +57,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
             itemView.setOnClickListener(view -> {
                 if (imageClickListener != null) {
                     int position = getBindingAdapterPosition();
-                    if(position != RecyclerView.NO_POSITION) {
+                    if (position != RecyclerView.NO_POSITION) {
                         imageClickListener.onImageClick(images.get(position).getImagePath());
                     }
                 }
@@ -63,7 +65,12 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         }
 
         public void bind(ImageItem imageItem) {
-            Glide.with(context).load(imageItem.getImagePath()).into(imageView);
+            Glide.with(context)
+                    .load(imageItem.getImagePath())
+                    .thumbnail(0.1f) // Load images first with low quality
+                    .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC) // Reasonable image cache
+                    .override(Target.SIZE_ORIGINAL) // Resize image if necessary
+                    .into(imageView);
         }
     }
 }
