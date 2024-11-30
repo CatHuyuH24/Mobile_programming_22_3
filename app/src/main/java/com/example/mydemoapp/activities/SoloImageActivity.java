@@ -1,12 +1,17 @@
 package com.example.mydemoapp.activities;
 
+import android.app.PendingIntent;
+import android.app.RecoverableSecurityException;
 import android.app.WallpaperManager;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.animation.Animation;
@@ -17,6 +22,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
@@ -40,6 +47,9 @@ public class SoloImageActivity extends AppCompatActivity {
     private int currentIndex;
 
     private final int CROP_REQUEST_CODE = 1;
+    private final int REQUEST_CODE_DELETE_IMAGE = 2;
+
+    private Uri _croppedImageUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +77,7 @@ public class SoloImageActivity extends AppCompatActivity {
         backBtn.setOnClickListener(view -> finish());
 
         // Set the background
-        setBackgroundBtn.setOnClickListener(view -> setWallpaper());
+        setBackgroundBtn.setOnClickListener(view -> startSettingWallpaper());
 
         // Previous button with slide animation
         previousBtn.setOnClickListener(view -> {
@@ -153,13 +163,9 @@ public class SoloImageActivity extends AppCompatActivity {
         });
     }
     // Using android's built in crop feature to allow user to choose the frame/position
-
-    private void setWallpaper() {
+    private void startSettingWallpaper() {
         try {
             Uri imageUri = Uri.parse(imagePaths.get(currentIndex));
-
-            // Create a temporary file URI for the cropped output
-            Uri croppedImageUri = Uri.fromFile(new File(getCacheDir(), "cropped_image.jpg"));
 
             Intent cropIntent = new Intent("com.android.camera.action.CROP");
             cropIntent.setDataAndType(imageUri, "image/*");
@@ -183,16 +189,10 @@ public class SoloImageActivity extends AppCompatActivity {
                 cropIntent.putExtra("aspectY",smallerSideAspect);
             }
 
-
-
             cropIntent.putExtra("outputX", screenWidth);
             cropIntent.putExtra("outputY", screenHeight);
             cropIntent.putExtra("scale", true);
             cropIntent.putExtra("return-data",true);
-
-            // Specify the output file URI
-//            cropIntent.putExtra("output", croppedImageUri);
-//            cropIntent.putExtra("outputFormat", Bitmap.CompressFormat.JPEG.toString());
 
             startActivityForResult(cropIntent, CROP_REQUEST_CODE);
         } catch (Exception e) {
@@ -201,64 +201,134 @@ public class SoloImageActivity extends AppCompatActivity {
         }
     }
 
+    private void setWallpaper(@Nullable Intent data){
+        if(data == null){
+            Toast.makeText(this,"Can't set the image to be the wallpaper",Toast.LENGTH_LONG).show();
+            Log.e( "Setting Wallpaper Error","Data when setting wallpaper is null!!!");
+            return;
+        }
+
+        // Extract the URI of the cropped image from the intent
+        _croppedImageUri = data.getData();
+
+        if (_croppedImageUri != null) {
+            try {
+                WallpaperManager wallpaperManager = WallpaperManager.getInstance(getApplicationContext());
+                Bitmap croppedBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(_croppedImageUri));
+
+                wallpaperManager.setBitmap(croppedBitmap,null,true,WallpaperManager.FLAG_SYSTEM);
+                Toast.makeText(SoloImageActivity.this, "Wallpaper set successfully", Toast.LENGTH_LONG).show();
+            } catch (Exception e) {
+                Log.e("SoloImageActivity", "Error setting wallpaper", e);
+                Toast.makeText(SoloImageActivity.this, "Failed to set wallpaper: " + e, Toast.LENGTH_LONG).show();
+            } finally {
+                //delete the newly cropped image, whether setting image as wallpaper succeeds or not
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    if (deleteCroppedImage(_croppedImageUri)) {
+                        Log.i("SoloImageActivity", "Cropped image deleted successfully");
+                    }
+                }
+                else {
+                    Toast.makeText(this,"Can't delete the cropped image",Toast.LENGTH_SHORT).show();
+                }
+            }
+        } else {
+            Log.e("SoloImageActivity", "Cropped image URI is null");
+        }
+
+    }
+
+        /**
+         * Shows a dialog explaining why you're requesting permission to delete the image.
+         *
+         * @param croppedImageUri The Uri of the cropped image.
+         */
+        private void showCustomDeletionExplanationDialogAndRequestDeletionPermission(Uri croppedImageUri, PendingIntent intent) {
+            // Show a dialog explaining why you're requesting permission to delete the image
+            new AlertDialog.Builder(this)
+                    .setTitle("Permission Request")
+                    .setMessage("We need your permission to delete the cropped image to keep your gallery organized. Please allow us to delete it for you.")
+                    .setPositiveButton("OK", (dialog, which) -> {
+                        try {
+                            // Show the dialog to the user to confirm deletion
+                            startIntentSenderForResult(
+                                    intent.getIntentSender(),
+                                    REQUEST_CODE_DELETE_IMAGE,
+                                    null,
+                                    0,
+                                    0,
+                                    0
+                            );
+
+                        } catch (IntentSender.SendIntentException sendIntentException) {
+                            Log.e("Send intent exception", "Failed to send intent for deletion", sendIntentException);
+                        }
+                    })
+                    .setCancelable(false)
+                    .show();
+        }
+
+        /**
+         * Deletes the cropped image using the ContentResolver.
+         *
+         * @param croppedImageUri The Uri of the cropped image.
+         * @return true if the image was deleted successfully, false otherwise.
+         */
+        @RequiresApi(api = Build.VERSION_CODES.Q)
+        private boolean deleteCroppedImage(Uri croppedImageUri) {
+            try {
+
+                // Check if the URI is a content URI or file URI
+                if ("content".equals(croppedImageUri.getScheme())) {
+                    Log.e("testing deleting image content",croppedImageUri.getScheme());
+                    // Use ContentResolver to delete the content
+                    int rowsDeleted = getContentResolver().delete(croppedImageUri, null, null);
+                    return rowsDeleted > 0;
+                }
+                if ("file".equals(croppedImageUri.getScheme())) {
+                    // Directly delete the file
+                    File file = new File(croppedImageUri.getPath());
+                    return file.exists() && file.delete();
+                }
+            } catch (RecoverableSecurityException e) {
+                // can't delete directly with contentResolver, handle RecoverableSecurityException
+                Log.e("RecoverableSecurityException", e.getMessage());
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+
+                    // Request the user to confirm deletion through the system dialog
+                    PendingIntent pendingIntent = e.getUserAction().getActionIntent();
+
+                    // Show your custom explanation and trigger the system dialog
+                    showCustomDeletionExplanationDialogAndRequestDeletionPermission(croppedImageUri, pendingIntent);
+                }
+            } catch (Exception e) {
+                Log.e("SoloImageActivity", "Error deleting cropped image, an exception other than RecoverableSecurityException: ", e);
+            }
+            return false;
+        }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        //debugging
-        Toast.makeText(this,"onActivityResult is called", Toast.LENGTH_LONG).show();
 
+        // Set the the cropped image as the wallpaper, then delete it
         if (requestCode == CROP_REQUEST_CODE && resultCode == RESULT_OK) {
-            // Extract the URI of the cropped image from the intent
-//            Uri croppedImageUri = data != null ? data.getData() : null;
+            setWallpaper(data);
+        }
 
-            //debugging
-            if(data == null){
-                Toast.makeText(this, "data is null!!!",Toast.LENGTH_LONG).show();
-                return;
-            }
-
-            Uri croppedImageUri = data.getData();
-            if (croppedImageUri != null) {
-                try {
-                    WallpaperManager wallpaperManager = WallpaperManager.getInstance(getApplicationContext());
-                    Bitmap croppedBitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(croppedImageUri));
-
-                    // Get the dimensions of the device's display
-                    DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
-                    int screenWidth = displayMetrics.widthPixels;
-                    int screenHeight = displayMetrics.heightPixels;
-
-                    Log.e("screenWidth: ", Integer.toString(screenWidth));
-                    Log.e("screenHeight: ", Integer.toString(screenHeight));
-                    Log.e("ratio: ", Integer.toString(screenWidth/screenHeight));
-
-                    // Define a crop rectangle (center-crop the bitmap to match screen dimensions)
-                    int bitmapWidth = croppedBitmap.getWidth();
-                    int bitmapHeight = croppedBitmap.getHeight();
-
-                    int left = (bitmapWidth - screenWidth) / 2;
-                    int top = (bitmapHeight - screenHeight) / 2;
-                    int right = left + screenWidth;
-                    int bottom = top + screenHeight;
-
-                    // Ensure the crop rectangle stays within bounds of the bitmap
-                    Rect cropRect = new Rect(
-                            Math.max(left, 0),
-                            Math.max(top, 0),
-                            Math.min(right, bitmapWidth),
-                            Math.min(bottom, bitmapHeight)
-                    );
-
-//                    wallpaperManager.setBitmap(croppedBitmap, cropRect, true, WallpaperManager.FLAG_SYSTEM);
-                    wallpaperManager.setBitmap(croppedBitmap,null,true,WallpaperManager.FLAG_SYSTEM);
-                    Toast.makeText(SoloImageActivity.this, "Wallpaper set successfully", Toast.LENGTH_LONG).show();
-                } catch (Exception e) {
-                    Log.e("SoloImageActivity", "Error setting wallpaper", e);
-                    Toast.makeText(SoloImageActivity.this, "Failed to set wallpaper: " + e, Toast.LENGTH_LONG).show();
+        if (requestCode == REQUEST_CODE_DELETE_IMAGE) {
+            if (resultCode == RESULT_OK) {
+                try{
+                    if (_croppedImageUri != null) {
+                        getContentResolver().delete(_croppedImageUri, null, null);
+                        Log.i("SoloImageActivity", "Image deleted successfully after user confirmation");
+                    }
+                }catch (Exception e){
+                    Log.e("Exception occurred while trying to re-delete the image ",e.getMessage());
                 }
             } else {
-                Log.e("SoloImageActivity", "Cropped image URI is null");
+                Log.e("SoloImageActivity", "User denied deletion");
             }
         }
     }
