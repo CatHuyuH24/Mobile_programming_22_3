@@ -247,7 +247,7 @@ public class SoloImageActivity extends AppCompatActivity {
             // Show a dialog explaining why you're requesting permission to delete the image
             new AlertDialog.Builder(this)
                     .setTitle("Permission Request")
-                    .setMessage("We need your permission to delete the cropped image to keep your gallery organized. Please allow us to delete it for you.")
+                    .setMessage("We need your permission to \ndelete the TEMPORARY cropped image (auto-created by us) \nto keep your gallery organized.\nPlease allow us to delete it for you.")
                     .setPositiveButton("OK", (dialog, which) -> {
                         try {
                             // Show the dialog to the user to confirm deletion
@@ -264,7 +264,7 @@ public class SoloImageActivity extends AppCompatActivity {
                             Log.e("Send intent exception", "Failed to send intent for deletion", sendIntentException);
                         }
                     })
-                    .setCancelable(false)
+                    .setCancelable(true)
                     .show();
         }
 
