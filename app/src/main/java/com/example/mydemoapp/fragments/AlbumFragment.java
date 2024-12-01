@@ -48,6 +48,9 @@ public class AlbumFragment extends Fragment {
     // Adapter
     private ArrayAdapter<String> albumAdapter;
 
+    // Flag
+    private boolean isFirstResume = true;
+
     // Constructor
     @Nullable
     @Override
@@ -72,6 +75,19 @@ public class AlbumFragment extends Fragment {
         removeAlbumButton.setOnClickListener(v -> removeAlbum());
 
         return view;
+    }
+
+    // Load images when fragment is resumed
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (isFirstResume) {
+            isFirstResume = false;
+            return;
+        }
+
+        displayImages(albumManager.getAlbumByName(selectedAlbumName));
     }
 
     // Get all albums from storage
@@ -104,12 +120,6 @@ public class AlbumFragment extends Fragment {
         });
 
         recyclerView.setAdapter(dateGroupAdapter);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        displayImages(albumManager.getAlbumByName(selectedAlbumName));
     }
 
     // Setup album spinner for selecting albums
@@ -157,10 +167,10 @@ public class AlbumFragment extends Fragment {
 
                         if (albumAdapter.getCount() == 0) {
                             albumAdapter.add("All");
+                            albumAdapter.notifyDataSetChanged();
                         }
                     } else {
                         allAlbum.setImages(allImages);
-                        albumManager.updateAlbum(allAlbum);
                     }
 
                     displayImages(allAlbum);
@@ -175,8 +185,6 @@ public class AlbumFragment extends Fragment {
         });
     }
 
-
-    // Display images in the selected album
     private void displayImages(Album album) {
         List<ImageItem> images = album.getImages();
 
