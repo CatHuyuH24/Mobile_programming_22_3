@@ -11,8 +11,8 @@
         android:orientation="horizontal">
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btn_solo_back"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:layout_gravity="start"
         android:background="@drawable/back_triangle_shape"
         android:contentDescription="@string/solo_back_btn"
@@ -26,7 +26,7 @@
         android:textSize="24sp"
         android:gravity="center_vertical|center_horizontal"
         android:paddingHorizontal="20dp"
-        android:layout_marginEnd="50dp"
+        android:layout_marginEnd="48dp"
         android:textColor="@android:color/primary_text_dark" />
 
     </LinearLayout>
@@ -37,13 +37,14 @@
         android:layout_height="0dip"
         android:layout_gravity="center|fill"
         android:layout_weight="2"
-        android:paddingVertical="10dp"
+        android:paddingVertical="16dp"
         android:contentDescription="@string/solo_default_image_content" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:layout_marginHorizontal="24dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -56,7 +57,6 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:background="@drawable/button_style"
-                android:padding="10dp"
                 android:textSize="16sp"
                 android:text="@string/solo_set_phone_background_btn"
                 android:textColor="@android:color/white"
@@ -66,7 +66,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
+            android:layout_marginTop="4dp"
             android:orientation="horizontal">
 
             <androidx.appcompat.widget.AppCompatButton
@@ -78,8 +78,10 @@
                 android:textSize="16sp"
                 android:text="@string/solo_add_to_album_btn"
                 android:textColor="@android:color/white"
-                android:layout_weight="1"/>
-
+                android:layout_weight="1" />
+            <Space
+                android:layout_width="8dp"
+                android:layout_height="match_parent"/>
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btn_solo_delete_from_album"
                 android:layout_width="180dp"
