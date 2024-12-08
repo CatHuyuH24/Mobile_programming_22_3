@@ -3,7 +3,6 @@ package com.example.mydemoapp.activities;
 import android.app.PendingIntent;
 import android.app.RecoverableSecurityException;
 import android.app.WallpaperManager;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.graphics.Bitmap;
@@ -13,7 +12,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
@@ -84,38 +82,12 @@ public class SoloImageActivity extends AppCompatActivity {
         // Set the background
         setBackgroundBtn.setOnClickListener(view -> startSettingWallpaper());
 
-        // Previous button with slide animation
-//        previousBtn.setOnClickListener(view -> {
-//            if (currentIndex > 0) {
-//                slideOutRightAndLoadImage(--currentIndex); // Slide out right and load previous image
-//            } else {
-//                Toast.makeText(this, "This is the first image", Toast.LENGTH_SHORT).show();
-//            }
-//        });
-
-        // Next button with slide animation
-//        nextBtn.setOnClickListener(view -> {
-//            if (currentIndex < imagePaths.size() - 1) {
-//                slideOutLeftAndLoadImage(++currentIndex); // Slide out left and load next image
-//            } else {
-//                Toast.makeText(this, "This is the last image", Toast.LENGTH_SHORT).show();
-//            }
-//        });
-
         // Add to album button
         addToAlbumBtn.setOnClickListener(view -> addToAlbum());
 
         // Delete from album button
         deleteFromAlbumBtn.setOnClickListener(view -> deleteFromAlbum());
-
-        findViewById(R.id.solo_image_layout).setOnTouchListener(new View.OnTouchListener(){
-        @Override
-            public boolean onTouch(View v, MotionEvent event) {
-            v.performClick();
-            return gestureDetector.onTouchEvent(event) || SoloImageActivity.this.onTouchEvent(event);
-        }
-    });
-        gestureDetector = new GestureDetector((Context) this, new MyGestureListener());
+        gestureDetector = new GestureDetector(this, new MyGestureListener());
     }
 
     private void loadImage(int index) {
@@ -213,19 +185,12 @@ public class SoloImageActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.e("SoloImageActivity", "Error while trying to crop the image", e);
             Toast.makeText(SoloImageActivity.this, "Failed to crop image: " + e, Toast.LENGTH_LONG).show();
+            _croppedImageUri = Uri.parse(imagePaths.get(currentIndex));
+            setWallpaper();
         }
     }
 
-    private void setWallpaper(@Nullable Intent data){
-        if(data == null){
-            Toast.makeText(this,"Can't set the image to be the wallpaper",Toast.LENGTH_LONG).show();
-            Log.e( "Setting Wallpaper Error","Data when setting wallpaper is null!!!");
-            return;
-        }
-
-        // Extract the URI of the cropped image from the intent
-        _croppedImageUri = data.getData();
-
+    private void setWallpaper(){
         if (_croppedImageUri != null) {
             try {
                 WallpaperManager wallpaperManager = WallpaperManager.getInstance(getApplicationContext());
@@ -329,7 +294,16 @@ public class SoloImageActivity extends AppCompatActivity {
 
         // Set the the cropped image as the wallpaper, then delete it
         if (requestCode == CROP_REQUEST_CODE && resultCode == RESULT_OK) {
-            setWallpaper(data);
+
+            if(data == null){
+                Toast.makeText(this,"Can't set the image to be the wallpaper",Toast.LENGTH_LONG).show();
+                Log.e( "Setting Wallpaper Error","Data when setting wallpaper is null!!!");
+                return;
+            }
+
+            // Extract the URI of the cropped image from the intent
+            _croppedImageUri = data.getData();
+            setWallpaper();
         }
 
         if (requestCode == REQUEST_CODE_DELETE_IMAGE) {
@@ -406,40 +380,31 @@ public class SoloImageActivity extends AppCompatActivity {
         return super.onTouchEvent(event) || gestureDetector.onTouchEvent(event);
     }
 
-    // In the SimpleOnGestureListener subclass you should override
-    // onDown and any other gesture that you want to detect.
+    // In the SimpleOnGestureListener subclass, override gestures that needs detecting.
     class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
 
         @Override
         public boolean onDown(@NonNull MotionEvent event) {
-            Log.d("TAG","onDown: ");
-
-            // don't return false here or else none of the other
-            // gestures will work
             return true;
         }
 
         @Override
         public boolean onSingleTapConfirmed(@NonNull MotionEvent e) {
-            Log.i("TAG", "onSingleTapConfirmed: ");
             return true;
         }
 
         @Override
         public void onLongPress(@NonNull MotionEvent e) {
-            Log.i("TAG", "onLongPress: ");
         }
 
         @Override
         public boolean onDoubleTap(@NonNull MotionEvent e) {
-            Log.i("TAG", "onDoubleTap: ");
             return true;
         }
 
         @Override
         public boolean onScroll(MotionEvent e1, @NonNull MotionEvent e2,
                                 float distanceX, float distanceY) {
-            Log.i("TAG", "onScroll: ");
             return true;
         }
 
