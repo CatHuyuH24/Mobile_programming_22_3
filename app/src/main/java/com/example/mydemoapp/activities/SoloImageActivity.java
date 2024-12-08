@@ -5,9 +5,9 @@ import android.app.RecoverableSecurityException;
 import android.app.WallpaperManager;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -20,7 +20,11 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
@@ -31,6 +35,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.target.Target;
 import com.example.mydemoapp.R;
 import com.example.mydemoapp.models.Album;
+import com.example.mydemoapp.models.ImageItem;
 import com.example.mydemoapp.utilities.AlbumManager;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -38,10 +43,11 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class SoloImageActivity extends AppCompatActivity {
     private ImageView soloImageView;
     private TextView tvTitle;
-    private Button backBtn, nextBtn, previousBtn, setBackgroundBtn, addToAlbumBtn, deleteFromAlbumBtn;
+    private Button backBtn, setBackgroundBtn, addToAlbumBtn, deleteFromAlbumBtn;
 
     private ArrayList<String> imagePaths;
     private int currentIndex;
@@ -51,6 +57,8 @@ public class SoloImageActivity extends AppCompatActivity {
 
     private Uri _croppedImageUri;
 
+    private GestureDetector gestureDetector;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,8 +67,6 @@ public class SoloImageActivity extends AppCompatActivity {
         soloImageView = findViewById(R.id.imgView_solo_image);
         tvTitle = findViewById(R.id.txtView_solo_image_title);
         backBtn = findViewById(R.id.btn_solo_back);
-        nextBtn = findViewById(R.id.btn_solo_next);
-        previousBtn = findViewById(R.id.btn_solo_previous);
         setBackgroundBtn = findViewById(R.id.btn_solo_set_background);
         addToAlbumBtn = findViewById(R.id.btn_solo_add_to_album);
         deleteFromAlbumBtn = findViewById(R.id.btn_solo_delete_from_album);
@@ -79,29 +85,12 @@ public class SoloImageActivity extends AppCompatActivity {
         // Set the background
         setBackgroundBtn.setOnClickListener(view -> startSettingWallpaper());
 
-        // Previous button with slide animation
-        previousBtn.setOnClickListener(view -> {
-            if (currentIndex > 0) {
-                slideOutRightAndLoadImage(--currentIndex); // Slide out right and load previous image
-            } else {
-                Toast.makeText(this, "This is the first image", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        // Next button with slide animation
-        nextBtn.setOnClickListener(view -> {
-            if (currentIndex < imagePaths.size() - 1) {
-                slideOutLeftAndLoadImage(++currentIndex); // Slide out left and load next image
-            } else {
-                Toast.makeText(this, "This is the last image", Toast.LENGTH_SHORT).show();
-            }
-        });
-
         // Add to album button
         addToAlbumBtn.setOnClickListener(view -> addToAlbum());
 
         // Delete from album button
         deleteFromAlbumBtn.setOnClickListener(view -> deleteFromAlbum());
+        gestureDetector = new GestureDetector(this, new MyGestureListener());
     }
 
     private void loadImage(int index) {
@@ -114,9 +103,10 @@ public class SoloImageActivity extends AppCompatActivity {
                 .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC) // Reasonable image cache
                 .override(Target.SIZE_ORIGINAL) // Resize image if necessary
                 .into(soloImageView);
-        
-        String tempTitle = "Image path: " + imagePath;
-        tvTitle.setText(tempTitle); // Update title
+
+        ImageItem imageItem = processImageItemFromUri(Uri.parse(imagePath));
+        String tempTitle = "Date: " + imageItem.getDate();
+        tvTitle.setText(tempTitle);
     }
 
     private void slideOutLeftAndLoadImage(int index) {
@@ -198,19 +188,12 @@ public class SoloImageActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.e("SoloImageActivity", "Error while trying to crop the image", e);
             Toast.makeText(SoloImageActivity.this, "Failed to crop image: " + e, Toast.LENGTH_LONG).show();
+            _croppedImageUri = Uri.parse(imagePaths.get(currentIndex));
+            setWallpaper();
         }
     }
 
-    private void setWallpaper(@Nullable Intent data){
-        if(data == null){
-            Toast.makeText(this,"Can't set the image to be the wallpaper",Toast.LENGTH_LONG).show();
-            Log.e( "Setting Wallpaper Error","Data when setting wallpaper is null!!!");
-            return;
-        }
-
-        // Extract the URI of the cropped image from the intent
-        _croppedImageUri = data.getData();
-
+    private void setWallpaper(){
         if (_croppedImageUri != null) {
             try {
                 WallpaperManager wallpaperManager = WallpaperManager.getInstance(getApplicationContext());
@@ -314,7 +297,16 @@ public class SoloImageActivity extends AppCompatActivity {
 
         // Set the the cropped image as the wallpaper, then delete it
         if (requestCode == CROP_REQUEST_CODE && resultCode == RESULT_OK) {
-            setWallpaper(data);
+
+            if(data == null){
+                Toast.makeText(this,"Can't set the image to be the wallpaper",Toast.LENGTH_LONG).show();
+                Log.e( "Setting Wallpaper Error","Data when setting wallpaper is null!!!");
+                return;
+            }
+
+            // Extract the URI of the cropped image from the intent
+            _croppedImageUri = data.getData();
+            setWallpaper();
         }
 
         if (requestCode == REQUEST_CODE_DELETE_IMAGE) {
@@ -385,4 +377,120 @@ public class SoloImageActivity extends AppCompatActivity {
                 })
                 .show();
     }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        return super.onTouchEvent(event) || gestureDetector.onTouchEvent(event);
+    }
+
+    // In the SimpleOnGestureListener subclass, override gestures that needs detecting.
+    class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
+
+        @Override
+        public boolean onDown(@NonNull MotionEvent event) {
+            return true;
+        }
+
+        @Override
+        public boolean onSingleTapConfirmed(@NonNull MotionEvent e) {
+            return true;
+        }
+
+        @Override
+        public void onLongPress(@NonNull MotionEvent e) {
+        }
+
+        @Override
+        public boolean onDoubleTap(@NonNull MotionEvent e) {
+            return true;
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent e1, @NonNull MotionEvent e2,
+                                float distanceX, float distanceY) {
+            return true;
+        }
+
+        @Override
+        public boolean onFling( MotionEvent e1, MotionEvent e2,
+                               float velocityX, float velocityY) {
+            assert e1 != null;
+            assert e2 != null;
+            float diffX = e2.getX() - e1.getX();
+            float diffY = e2.getY() - e1.getY();
+
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                if (Math.abs(diffX) > 100 && Math.abs(velocityX) > 100) {
+                    if (diffX > 0) {
+                        // Swipe right
+                        if (currentIndex > 0) {
+                            slideOutRightAndLoadImage(--currentIndex);
+                        } else {
+                            Toast.makeText(SoloImageActivity.this, "This is the first image", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        // Swipe left
+                        if (currentIndex < imagePaths.size() - 1) {
+                            slideOutLeftAndLoadImage(++currentIndex);
+                        } else {
+                            Toast.makeText(SoloImageActivity.this, "This is the last image", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                    return true;
+                }
+            }
+            else{
+                return false;
+            }
+            return false;
+        }
+
+    };
+
+
+    public ImageItem processImageItemFromUri(Uri uri) {
+        String filePath = null;
+        long dateTaken = 0;
+
+        if ("content".equals(uri.getScheme())) {
+            // Use ContentResolver to retrieve metadata from the Uri
+            Cursor cursor = getContentResolver().query(uri,
+                    new String[]{MediaStore.Images.Media.DATA, MediaStore.Images.Media.DATE_TAKEN},
+                    null, null, null);
+
+            if (cursor != null && cursor.moveToFirst()) {
+                int filePathColumn = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
+                int dateColumn = cursor.getColumnIndex(MediaStore.Images.Media.DATE_TAKEN);
+
+                if (filePathColumn != -1) {
+                    filePath = cursor.getString(filePathColumn);
+                }
+                if (dateColumn != -1) {
+                    dateTaken = cursor.getLong(dateColumn);
+                }
+                cursor.close();
+            }
+        } else if ("file".equals(uri.getScheme())) {
+            File file = new File(uri.getPath());
+            if (!file.exists()){
+                Log.e("File does not exist when processing image item from Uri path: ",uri.getPath());
+                return null;
+            }
+            filePath = file.getAbsolutePath();
+
+            // Retrieve date from file's last modified timestamp
+            dateTaken = file.lastModified();
+        }
+
+        // Create an ImageItem instance
+        if (filePath != null) {
+            return new ImageItem(filePath, dateTaken);
+        }
+
+        return null; // Return null if the process fails
+    }
+
+
 }
+
+

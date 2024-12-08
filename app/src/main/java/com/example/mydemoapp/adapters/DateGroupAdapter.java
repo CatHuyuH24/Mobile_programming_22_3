@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -55,7 +56,9 @@ public class DateGroupAdapter extends RecyclerView.Adapter<DateGroupAdapter.Date
 
         public void bind(DateGroup dateGroup) {
             dateText.setText(dateGroup.getDate());
-            recyclerView.setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false));
+
+            int numberOfCol = 4;
+            recyclerView.setLayoutManager(new GridLayoutManager(context, numberOfCol));
             ImageAdapter imageAdapter = new ImageAdapter(context, dateGroup.getImages(), imageClickListener); // Pass listener to adapter
             recyclerView.setAdapter(imageAdapter);
         }
