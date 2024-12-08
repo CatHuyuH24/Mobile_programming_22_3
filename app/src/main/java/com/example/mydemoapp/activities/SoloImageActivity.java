@@ -104,7 +104,7 @@ public class SoloImageActivity extends AppCompatActivity {
                 .override(Target.SIZE_ORIGINAL) // Resize image if necessary
                 .into(soloImageView);
 
-        ImageItem imageItem = processImage(Uri.parse(imagePath));
+        ImageItem imageItem = processImageItemFromUri(Uri.parse(imagePath));
         String tempTitle = "Date: " + imageItem.getDate();
         tvTitle.setText(tempTitle);
     }
@@ -448,12 +448,11 @@ public class SoloImageActivity extends AppCompatActivity {
     };
 
 
-    public ImageItem processImage(Object input) {
+    public ImageItem processImageItemFromUri(Uri uri) {
         String filePath = null;
         long dateTaken = 0;
 
-        if (input instanceof Uri) {
-            Uri uri = (Uri) input;
+        if ("content".equals(uri.getScheme())) {
             // Use ContentResolver to retrieve metadata from the Uri
             Cursor cursor = getContentResolver().query(uri,
                     new String[]{MediaStore.Images.Media.DATA, MediaStore.Images.Media.DATE_TAKEN},
@@ -471,8 +470,12 @@ public class SoloImageActivity extends AppCompatActivity {
                 }
                 cursor.close();
             }
-        } else if (input instanceof File) {
-            File file = (File) input;
+        } else if ("file".equals(uri.getScheme())) {
+            File file = new File(uri.getPath());
+            if (!file.exists()){
+                Log.e("File does not exist when processing image item from Uri path: ",uri.getPath());
+                return null;
+            }
             filePath = file.getAbsolutePath();
 
             // Retrieve date from file's last modified timestamp
