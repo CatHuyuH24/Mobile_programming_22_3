@@ -73,6 +73,7 @@ public class PictureFragment extends Fragment {
                             Intent intent = new Intent(getActivity(), SoloImageActivity.class);
                             intent.putStringArrayListExtra("IMAGE_PATHS", getImagePathsFromList(imageList));
                             intent.putExtra("CURRENT_IMAGE_INDEX", index);
+                            intent.putExtra("DATE_TAKEN", imageList.get(index).getDate());
                             startActivity(intent);
                         }
                     });

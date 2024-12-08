@@ -3,24 +3,28 @@ package com.example.mydemoapp.activities;
 import android.app.PendingIntent;
 import android.app.RecoverableSecurityException;
 import android.app.WallpaperManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
@@ -38,10 +42,11 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class SoloImageActivity extends AppCompatActivity {
     private ImageView soloImageView;
     private TextView tvTitle;
-    private Button backBtn, nextBtn, previousBtn, setBackgroundBtn, addToAlbumBtn, deleteFromAlbumBtn;
+    private Button backBtn, setBackgroundBtn, addToAlbumBtn, deleteFromAlbumBtn;
 
     private ArrayList<String> imagePaths;
     private int currentIndex;
@@ -51,6 +56,8 @@ public class SoloImageActivity extends AppCompatActivity {
 
     private Uri _croppedImageUri;
 
+    private GestureDetector gestureDetector;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,8 +66,6 @@ public class SoloImageActivity extends AppCompatActivity {
         soloImageView = findViewById(R.id.imgView_solo_image);
         tvTitle = findViewById(R.id.txtView_solo_image_title);
         backBtn = findViewById(R.id.btn_solo_back);
-        nextBtn = findViewById(R.id.btn_solo_next);
-        previousBtn = findViewById(R.id.btn_solo_previous);
         setBackgroundBtn = findViewById(R.id.btn_solo_set_background);
         addToAlbumBtn = findViewById(R.id.btn_solo_add_to_album);
         deleteFromAlbumBtn = findViewById(R.id.btn_solo_delete_from_album);
@@ -80,28 +85,37 @@ public class SoloImageActivity extends AppCompatActivity {
         setBackgroundBtn.setOnClickListener(view -> startSettingWallpaper());
 
         // Previous button with slide animation
-        previousBtn.setOnClickListener(view -> {
-            if (currentIndex > 0) {
-                slideOutRightAndLoadImage(--currentIndex); // Slide out right and load previous image
-            } else {
-                Toast.makeText(this, "This is the first image", Toast.LENGTH_SHORT).show();
-            }
-        });
+//        previousBtn.setOnClickListener(view -> {
+//            if (currentIndex > 0) {
+//                slideOutRightAndLoadImage(--currentIndex); // Slide out right and load previous image
+//            } else {
+//                Toast.makeText(this, "This is the first image", Toast.LENGTH_SHORT).show();
+//            }
+//        });
 
         // Next button with slide animation
-        nextBtn.setOnClickListener(view -> {
-            if (currentIndex < imagePaths.size() - 1) {
-                slideOutLeftAndLoadImage(++currentIndex); // Slide out left and load next image
-            } else {
-                Toast.makeText(this, "This is the last image", Toast.LENGTH_SHORT).show();
-            }
-        });
+//        nextBtn.setOnClickListener(view -> {
+//            if (currentIndex < imagePaths.size() - 1) {
+//                slideOutLeftAndLoadImage(++currentIndex); // Slide out left and load next image
+//            } else {
+//                Toast.makeText(this, "This is the last image", Toast.LENGTH_SHORT).show();
+//            }
+//        });
 
         // Add to album button
         addToAlbumBtn.setOnClickListener(view -> addToAlbum());
 
         // Delete from album button
         deleteFromAlbumBtn.setOnClickListener(view -> deleteFromAlbum());
+
+        findViewById(R.id.solo_image_layout).setOnTouchListener(new View.OnTouchListener(){
+        @Override
+            public boolean onTouch(View v, MotionEvent event) {
+            v.performClick();
+            return gestureDetector.onTouchEvent(event) || SoloImageActivity.this.onTouchEvent(event);
+        }
+    });
+        gestureDetector = new GestureDetector((Context) this, new MyGestureListener());
     }
 
     private void loadImage(int index) {
@@ -114,9 +128,10 @@ public class SoloImageActivity extends AppCompatActivity {
                 .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC) // Reasonable image cache
                 .override(Target.SIZE_ORIGINAL) // Resize image if necessary
                 .into(soloImageView);
-        
-        String tempTitle = "Image path: " + imagePath;
-        tvTitle.setText(tempTitle); // Update title
+
+
+        String tempTitle = "Date: " + getIntent().getStringExtra("DATE_TAKEN");
+        tvTitle.setText(tempTitle);
     }
 
     private void slideOutLeftAndLoadImage(int index) {
@@ -385,4 +400,84 @@ public class SoloImageActivity extends AppCompatActivity {
                 })
                 .show();
     }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        return super.onTouchEvent(event) || gestureDetector.onTouchEvent(event);
+    }
+
+    // In the SimpleOnGestureListener subclass you should override
+    // onDown and any other gesture that you want to detect.
+    class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
+
+        @Override
+        public boolean onDown(@NonNull MotionEvent event) {
+            Log.d("TAG","onDown: ");
+
+            // don't return false here or else none of the other
+            // gestures will work
+            return true;
+        }
+
+        @Override
+        public boolean onSingleTapConfirmed(@NonNull MotionEvent e) {
+            Log.i("TAG", "onSingleTapConfirmed: ");
+            return true;
+        }
+
+        @Override
+        public void onLongPress(@NonNull MotionEvent e) {
+            Log.i("TAG", "onLongPress: ");
+        }
+
+        @Override
+        public boolean onDoubleTap(@NonNull MotionEvent e) {
+            Log.i("TAG", "onDoubleTap: ");
+            return true;
+        }
+
+        @Override
+        public boolean onScroll(MotionEvent e1, @NonNull MotionEvent e2,
+                                float distanceX, float distanceY) {
+            Log.i("TAG", "onScroll: ");
+            return true;
+        }
+
+        @Override
+        public boolean onFling( MotionEvent e1, MotionEvent e2,
+                               float velocityX, float velocityY) {
+            assert e1 != null;
+            assert e2 != null;
+            float diffX = e2.getX() - e1.getX();
+            float diffY = e2.getY() - e1.getY();
+
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                if (Math.abs(diffX) > 100 && Math.abs(velocityX) > 100) {
+                    if (diffX > 0) {
+                        // Swipe right
+                        if (currentIndex > 0) {
+                            slideOutRightAndLoadImage(--currentIndex);
+                        } else {
+                            Toast.makeText(SoloImageActivity.this, "This is the first image", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        // Swipe left
+                        if (currentIndex < imagePaths.size() - 1) {
+                            slideOutLeftAndLoadImage(++currentIndex);
+                        } else {
+                            Toast.makeText(SoloImageActivity.this, "This is the last image", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                    return true;
+                }
+            }
+            else{
+                return false;
+            }
+            return false;
+        }
+
+    };
+
+
 }
