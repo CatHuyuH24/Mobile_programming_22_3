@@ -15,17 +15,19 @@
         android:layout_height="50dp"
         android:layout_gravity="start"
         android:background="@drawable/back_triangle_shape"
-        android:contentDescription="@string/solo_back_btn"/>
+        android:contentDescription="@string/solo_back_btn"
+        android:translationX="-10dp"/>
 
     <TextView
         android:id="@+id/txtView_solo_image_title"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/light_blue"
+        android:background="@color/light_purple"
         android:textSize="24sp"
-        android:gravity="center_vertical|end"
+        android:gravity="center_vertical|center_horizontal"
         android:paddingHorizontal="20dp"
-        android:textColor="@android:color/primary_text_light" />
+        android:layout_marginEnd="50dp"
+        android:textColor="@android:color/primary_text_dark" />
 
     </LinearLayout>
 
@@ -35,6 +37,7 @@
         android:layout_height="0dip"
         android:layout_gravity="center|fill"
         android:layout_weight="2"
+        android:paddingVertical="10dp"
         android:contentDescription="@string/solo_default_image_content" />
 
     <LinearLayout
@@ -54,7 +57,7 @@
                 android:layout_gravity="center_horizontal"
                 android:background="@drawable/button_style"
                 android:padding="10dp"
-                android:textSize="24sp"
+                android:textSize="16sp"
                 android:text="@string/solo_set_phone_background_btn"
                 android:textColor="@android:color/white"
                 android:layout_weight="1"/>
