@@ -5,11 +5,13 @@ import android.app.RecoverableSecurityException;
 import android.app.WallpaperManager;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.animation.Animation;
@@ -33,6 +35,7 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.target.Target;
 import com.example.mydemoapp.R;
 import com.example.mydemoapp.models.Album;
+import com.example.mydemoapp.models.ImageItem;
 import com.example.mydemoapp.utilities.AlbumManager;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
@@ -101,8 +104,8 @@ public class SoloImageActivity extends AppCompatActivity {
                 .override(Target.SIZE_ORIGINAL) // Resize image if necessary
                 .into(soloImageView);
 
-
-        String tempTitle = "Date: " + getIntent().getStringExtra("DATE_TAKEN");
+        ImageItem imageItem = processImage(Uri.parse(imagePath));
+        String tempTitle = "Date: " + imageItem.getDate();
         tvTitle.setText(tempTitle);
     }
 
@@ -445,4 +448,46 @@ public class SoloImageActivity extends AppCompatActivity {
     };
 
 
+    public ImageItem processImage(Object input) {
+        String filePath = null;
+        long dateTaken = 0;
+
+        if (input instanceof Uri) {
+            Uri uri = (Uri) input;
+            // Use ContentResolver to retrieve metadata from the Uri
+            Cursor cursor = getContentResolver().query(uri,
+                    new String[]{MediaStore.Images.Media.DATA, MediaStore.Images.Media.DATE_TAKEN},
+                    null, null, null);
+
+            if (cursor != null && cursor.moveToFirst()) {
+                int filePathColumn = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
+                int dateColumn = cursor.getColumnIndex(MediaStore.Images.Media.DATE_TAKEN);
+
+                if (filePathColumn != -1) {
+                    filePath = cursor.getString(filePathColumn);
+                }
+                if (dateColumn != -1) {
+                    dateTaken = cursor.getLong(dateColumn);
+                }
+                cursor.close();
+            }
+        } else if (input instanceof File) {
+            File file = (File) input;
+            filePath = file.getAbsolutePath();
+
+            // Retrieve date from file's last modified timestamp
+            dateTaken = file.lastModified();
+        }
+
+        // Create an ImageItem instance
+        if (filePath != null) {
+            return new ImageItem(filePath, dateTaken);
+        }
+
+        return null; // Return null if the process fails
+    }
+
+
 }
+
+

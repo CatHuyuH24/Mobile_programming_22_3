@@ -23,7 +23,8 @@
         android:layout_height="match_parent"
         android:background="@color/light_blue"
         android:textSize="24sp"
-        android:padding="1dp"
+        android:gravity="center_vertical|end"
+        android:paddingHorizontal="20dp"
         android:textColor="@android:color/primary_text_light" />
 
     </LinearLayout>
