@@ -51,7 +51,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
 
         public ImageViewHolder(@NonNull View itemView) {
             super(itemView);
-            imageView = itemView.findViewById(R.id.image_view); // Replace with your ImageView ID
+            imageView = itemView.findViewById(R.id.image_view);
 
             // Set onClickListener to handle image clicks
             itemView.setOnClickListener(view -> {
