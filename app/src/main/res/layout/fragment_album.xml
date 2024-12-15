@@ -20,13 +20,13 @@
             android:id="@+id/add_album_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Add new album"/>
+            android:text="@string/action_add_new_album"/>
 
         <Button
             android:id="@+id/remove_album_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Delete this album"/>
+            android:text="@string/action_delete_this_album"/>
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView

@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -24,6 +26,7 @@ import com.example.mydemoapp.utilities.ImageGrouping;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public class PictureFragment extends Fragment {
     private FragmentPictureBinding binding;
@@ -40,6 +43,55 @@ public class PictureFragment extends Fragment {
 
         // Initialize empty list for images
         imageList = new ArrayList<>();
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item,
+                new String[]{"Decrease", "Increase"});
+
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        binding.spinnerFilter.setAdapter(adapter);
+
+        binding.spinnerFilter.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id)
+            {
+                RecyclerView.Adapter<?> groupAdapter = recyclerView.getAdapter();
+                if(groupAdapter == null)
+                {
+                    Toast.makeText(getContext(), "Adapter is null", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if(!(groupAdapter instanceof DateGroupAdapter))
+                {
+                    Toast.makeText(getContext(), "Invalid Adapter Type", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                DateGroupAdapter dateGroupAdapter = (DateGroupAdapter) groupAdapter;
+                List<DateGroup> dateGroups = dateGroupAdapter.getDateGroups();
+
+                if(dateGroups == null || dateGroups.isEmpty())
+                {
+                    Toast.makeText(getContext(), "Date Groups is Empty", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if(position == 0)
+                {
+                    dateGroups.sort((group1, group2) -> group2.getDate().compareTo(group1.getDate()));
+                } else if (position == 1) { // Increase
+                    dateGroups.sort((group1, group2) -> group1.getDate().compareTo(group2.getDate()));
+                }
+                // Notify the adapter of data changes
+                dateGroupAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent)
+            {
+                // do nothing
+            }
+        });
 
         // Fetch images asynchronously
         ImageFetcher.getAllImagesAsync(getContext(), new ImageFetcher.FetchImagesCallback() {
@@ -89,7 +141,41 @@ public class PictureFragment extends Fragment {
             }
         });
 
+        binding.btnRandomImage.setOnClickListener(view -> handleRandomImage());
+
         return binding.getRoot();
+    }
+
+    private void handleRandomImage(){
+        if(imageList != null && !imageList.isEmpty())
+        {
+            Random random = new Random();
+            int randomIndex = random.nextInt(imageList.size());
+            startSoloImageActivity(randomIndex);
+        }
+        else {
+            Toast.makeText(getContext(), "List Image Empty", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private int findImageIndex(String imagePath)
+    {
+        for(int i =0; i < imageList.size(); i++)
+        {
+            if(imageList.get(i).getImagePath().equals(imagePath))
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private void startSoloImageActivity(int index)
+    {
+        Intent intent = new Intent(getActivity(), SoloImageActivity.class);
+        intent.putStringArrayListExtra("IMAGE_PATHS", getImagePathsFromList(imageList));
+        intent.putExtra("CURRENT_IMAGE_INDEX", index);
+        startActivity(intent);
     }
 
 

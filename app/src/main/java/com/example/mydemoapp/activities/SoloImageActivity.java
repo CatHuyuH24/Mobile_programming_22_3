@@ -29,6 +29,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -40,6 +41,7 @@ import com.example.mydemoapp.utilities.AlbumManager;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,7 +49,7 @@ import java.util.List;
 public class SoloImageActivity extends AppCompatActivity {
     private ImageView soloImageView;
     private TextView tvTitle;
-    private Button backBtn, setBackgroundBtn, addToAlbumBtn, deleteFromAlbumBtn;
+    private Button backBtn, btnShare, setBackgroundBtn, addToAlbumBtn, deleteFromAlbumBtn;
 
     private ArrayList<String> imagePaths;
     private int currentIndex;
@@ -91,7 +93,70 @@ public class SoloImageActivity extends AppCompatActivity {
         // Delete from album button
         deleteFromAlbumBtn.setOnClickListener(view -> deleteFromAlbum());
         gestureDetector = new GestureDetector(this, new MyGestureListener());
+        btnShare = findViewById(R.id.btn_share_image);
+        btnShare.setOnClickListener(view -> shareImage());
+
     }
+
+    private void shareImage() {
+        if (imagePaths != null && currentIndex >= 0 && currentIndex < imagePaths.size()) {
+            // Get the current image path
+            String imagePath = imagePaths.get(currentIndex);
+            File imageFile = new File(imagePath);
+
+            Log.d("ShareImage", "Image path: " + imagePath);
+            Log.d("ShareImage", "Image exists: " + imageFile.exists());
+            if (imageFile.exists()) { // Check if the file exists
+                // Decode the image file into a Bitmap
+                Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
+
+                if (bitmap != null) {
+                    // Create an Intent to share the image
+                    Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                    shareIntent.setType("image/png");
+
+                    // Save the bitmap to a temporary file
+                    File tempFile = new File(getCacheDir(), "shared_image.png");
+                    try (FileOutputStream out = new FileOutputStream(tempFile)) {
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+                        Uri imageUri = FileProvider.getUriForFile(
+                                this,
+                                "com.example.mydemoapp.fileprovider", // Ensure this matches your file provider's authority
+                                tempFile
+                        );
+
+                        // Put extra data into the share intent
+                        shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
+                        shareIntent.putExtra(Intent.EXTRA_TEXT, "Sharing Image");
+                        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Image Subject");
+                        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
+                        // Show the sharing options
+                        Intent chooserIntent = Intent.createChooser(shareIntent, "Share image via");
+
+                        if (shareIntent.resolveActivity(getPackageManager()) != null) {
+                            startActivity(chooserIntent);
+                        } else {
+                            Toast.makeText(this, "No app found to share the image", Toast.LENGTH_SHORT).show();
+                        }
+                    } catch (Exception e) {
+                        Log.e("ShareImage", "Error sharing image: " + e.getMessage());
+                        Toast.makeText(this, "Failed to share image", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    // Show error if Bitmap could not be loaded
+                    Toast.makeText(this, "Failed to load image!", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                // Show error if file does not exist
+                Toast.makeText(this, "Image file not found!", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            // Show error if index is invalid
+            Toast.makeText(this, "Invalid image or index!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
 
     private void loadImage(int index) {
         // Load the image using Glide
@@ -489,8 +554,6 @@ public class SoloImageActivity extends AppCompatActivity {
 
         return null; // Return null if the process fails
     }
-
-
 }
 
 
