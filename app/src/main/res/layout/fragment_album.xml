@@ -3,14 +3,36 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
-
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="My Albums"
-        android:textAlignment="center"
-        android:textAppearance="@style/TextAppearance.AppCompat.Large"
-        android:textStyle="bold" />
+        android:orientation="horizontal"
+        android:layout_gravity="center|fill"
+        android:paddingHorizontal="16dp">
+        <View
+            android:layout_width="30dp"
+            android:layout_height="match_parent" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="My Albums"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
+            android:textStyle="bold"
+            android:gravity="center" />
+
+        <ImageButton
+            android:id="@+id/menu_icon_button"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/baseline_dehaze_24"
+            android:contentDescription="Menu icon button"
+            android:padding="16dp" />
+    </LinearLayout>
+
+
+
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -33,34 +55,7 @@
             android:padding="12dp" />
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingHorizontal="16dp">
 
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/add_album_button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@drawable/album_button"
-            android:text="Add new album"
-            android:textColor="@color/white" />
-
-        <View
-            android:layout_width="8dp"
-            android:layout_height="match_parent" />
-
-        <androidx.appcompat.widget.AppCompatButton
-            android:id="@+id/remove_album_button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@drawable/album_button"
-            android:text="Delete this album"
-            android:textColor="@color/white" />
-    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
