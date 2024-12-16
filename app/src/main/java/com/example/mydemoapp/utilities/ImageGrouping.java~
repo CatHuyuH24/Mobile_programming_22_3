@@ -20,17 +20,22 @@ public class ImageGrouping {
 
     public static Map<String, List<ImageItem>> groupByMonth(List<ImageItem> imageList) {
         Map<String, List<ImageItem>> imageByMonth = new HashMap<>();
+        SimpleDateFormat monthFormat = new SimpleDateFormat("MMMM yyyy", Locale.getDefault());
+
         for (ImageItem imageItem : imageList) {
-            imageByMonth.computeIfAbsent(imageItem.getMonth(), k -> new ArrayList<>()).add(imageItem);
+            String month = monthFormat.format(imageItem.getDate());
+            imageByMonth.computeIfAbsent(month, k -> new ArrayList<>()).add(imageItem);
         }
         return imageByMonth;
     }
 
     public static Map<String, List<ImageItem>> groupByYear(List<ImageItem> imageList) {
         Map<String, List<ImageItem>> imageByYear = new HashMap<>();
+        SimpleDateFormat yearFormat = new SimpleDateFormat("yyyy", Locale.getDefault());
 
         for (ImageItem imageItem : imageList) {
-            imageByYear.computeIfAbsent(imageItem.getYear(), k -> new ArrayList<>()).add(imageItem);
+            String year = yearFormat.format(imageItem.getDate());
+            imageByYear.computeIfAbsent(year, k -> new ArrayList<>()).add(imageItem);
         }
         return imageByYear;
     }
