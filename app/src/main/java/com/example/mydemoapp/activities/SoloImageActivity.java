@@ -34,6 +34,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.target.Target;
 import com.example.mydemoapp.R;
+import com.example.mydemoapp.fragments.PictureFragment;
 import com.example.mydemoapp.models.Album;
 import com.example.mydemoapp.models.ImageItem;
 import com.example.mydemoapp.utilities.AlbumManager;
@@ -106,9 +107,8 @@ public class SoloImageActivity extends AppCompatActivity {
 
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                             Uri imageUri = Uri.parse(imagePaths.get(currentIndex));
-                            boolean deletedSuccessfully = false;
                             try {
-                                deletedSuccessfully = deleteImage(imageUri, REQUEST_CODE_DELETE_IMAGE);
+                                deleteImage(imageUri, REQUEST_CODE_DELETE_IMAGE);
                             } catch (RecoverableSecurityException e) {
                                 // can't delete directly with contentResolver, handle RecoverableSecurityException
                                 Log.e("RecoverableSecurityException deleting an image", e.getMessage());
@@ -130,13 +130,8 @@ public class SoloImageActivity extends AppCompatActivity {
                             } catch (Exception e) {
                                 Log.e("SoloImageActivity", "Error deleting image, an exception other than RecoverableSecurityException: ", e);
                             }
-
-                            if(deletedSuccessfully){
-                                finish();
-                            }
                         } else {
                             Toast.makeText(this, "Can't delete the image", Toast.LENGTH_SHORT).show();
-                            finish();
                         }
                     })
                     .setNegativeButton("No", (dialog, which) -> {
@@ -381,10 +376,10 @@ public class SoloImageActivity extends AppCompatActivity {
             try{
                 if(resultCode == RESULT_OK){
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                        finish();
+                        //do nothing
                     } else if(Build.VERSION.SDK_INT == Build.VERSION_CODES.Q){
-                        if(_croppedImageUri != null && deleteImage(_croppedImageUri, REQUEST_CODE_DELETE_CROPPED_IMAGE)){
-                            finish();
+                        if(_croppedImageUri != null){
+                            deleteImage(_croppedImageUri, REQUEST_CODE_DELETE_CROPPED_IMAGE);
                         }
                     }
                 } else {

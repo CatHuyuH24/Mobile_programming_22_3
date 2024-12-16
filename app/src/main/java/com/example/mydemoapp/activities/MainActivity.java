@@ -96,10 +96,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            startActivity(getIntent());
             switch(requestCode){
                   case REQUEST_CODE_READ_EXTERNAL_STORAGE:
                   case REQUEST_CODE_READ_MEDIA_IMAGES:
