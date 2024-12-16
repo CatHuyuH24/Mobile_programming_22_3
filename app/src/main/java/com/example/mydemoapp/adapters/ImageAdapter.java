@@ -100,4 +100,9 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         item.toggleIsSelected();
         notifyItemChanged(index);
     }
+
+    public void removeImageOnDisplay(int index){
+        images.remove(index);
+        notifyItemRemoved(index);
+    }
 }

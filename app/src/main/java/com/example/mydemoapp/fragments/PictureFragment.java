@@ -1,7 +1,15 @@
 package com.example.mydemoapp.fragments;
 
+import static android.app.Activity.RESULT_OK;
+
+import android.app.PendingIntent;
+import android.app.RecoverableSecurityException;
 import android.content.Intent;
+import android.content.IntentSender;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +17,9 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.IntentSenderRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -25,6 +36,7 @@ import com.example.mydemoapp.utilities.ImageGrouping;
 import com.example.mydemoapp.utilities.ImageDeletion;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -32,12 +44,15 @@ public class PictureFragment extends Fragment {
     private FragmentPictureBinding binding;
     private List<ImageItem> imageList; // Create imageList
     private boolean isSelectionMode = false;
-    private final List<String> selectedImagePaths = new ArrayList<>();
+    private final List<Integer> selectedImageIndices = new ArrayList<>();
     private DateGroupAdapter dateGroupAdapter;
 
     private TextView selectedImageNumber;
     private Button deleteBtn;
-
+    private final int REQUEST_CODE_DELETE_IMAGES = 201;
+    private ActivityResultLauncher<IntentSenderRequest> deleteImageLauncher;
+    private Uri _toBeDeletedUri;
+    
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -88,8 +103,44 @@ public class PictureFragment extends Fragment {
         });
 
         deleteBtn.setOnClickListener(view -> {
-            Toast.makeText(getContext(), "Delete button clicked", Toast.LENGTH_SHORT).show();
+
+            // smallest to largest, since deleting from the end (stack-like)
+            Collections.sort(selectedImageIndices);
+            keepDeletingNextSelectedImage();
         });
+
+        deleteImageLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartIntentSenderForResult(),
+                result -> {
+                    if(result.getResultCode() != RESULT_OK){
+                        return;//do nothing
+                    }
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        try {
+                            ImageDeletion.deleteImage(_toBeDeletedUri,REQUEST_CODE_DELETE_IMAGES,requireActivity());
+
+                            int removedIndex = selectedImageIndices.get(selectedImageIndices.size()-1);
+                            imageList.remove(removedIndex);
+                            selectedImageIndices.remove(selectedImageIndices.size()-1);
+                            dateGroupAdapter.notifyItemRemoved(removedIndex);
+                            dateGroupAdapter.removeImageOnDisplay(removedIndex);
+
+                            updateImagesNumberDisplay();
+
+                            if(!selectedImageIndices.isEmpty()){
+                                keepDeletingNextSelectedImage();
+                            } else {
+                                disableSelectionMode();
+                            }
+                        } catch (IntentSender.SendIntentException e) {
+                            throw new RuntimeException(e);
+                        }
+                    } else {
+                        Toast.makeText(getContext(), "Can't delete the image(s)", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
 
         return binding.getRoot();
     }
@@ -119,7 +170,8 @@ public class PictureFragment extends Fragment {
 //        }
 
         if(isSelectionMode){
-            toggleSelectionAndNotify(imageIndex);
+            toggleSelection(imageIndex);
+            updateImagesNumberDisplay();
         } else {
             if (imageIndex != -1) {
                 // Create an intent to start SoloImageActivity
@@ -147,25 +199,53 @@ public class PictureFragment extends Fragment {
             deleteBtn.setVisibility(View.VISIBLE);
         }
 
-        toggleSelectionAndNotify(imageIndex);
+        toggleSelection(imageIndex);
+        updateImagesNumberDisplay();
     }
 
-    private void toggleSelectionAndNotify(int imageIndex){
-        String imagePath = imageList.get(imageIndex).getImagePath();
-        if(selectedImagePaths.contains(imagePath)){
-            selectedImagePaths.remove(imagePath);
+    private void toggleSelection(int imageIndex){
+        if(selectedImageIndices.contains(imageIndex)){
+            selectedImageIndices.remove((Integer) imageIndex);
         } else {
-            selectedImagePaths.add(imagePath);
+            selectedImageIndices.add(imageIndex);
         }
         dateGroupAdapter.onLongImageClick(imageIndex);
 
-        String numberNotification = "Selected "+selectedImagePaths.size()+" images";
-        selectedImageNumber.setText(numberNotification);
+        if(selectedImageIndices.isEmpty()){
+            disableSelectionMode();
+        }
+    }
 
-        if(selectedImagePaths.isEmpty()){
-            isSelectionMode = false;
-            selectedImageNumber.setVisibility(View.INVISIBLE);
-            deleteBtn.setVisibility(View.INVISIBLE);
+    private void updateImagesNumberDisplay() {
+        String numberNotification = "Selected "+selectedImageIndices.size()+" images";
+        selectedImageNumber.setText(numberNotification);
+    }
+
+    private void disableSelectionMode() {
+        isSelectionMode = false;
+        selectedImageNumber.setVisibility(View.INVISIBLE);
+        deleteBtn.setVisibility(View.INVISIBLE);
+    }
+
+    private void keepDeletingNextSelectedImage(){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
+            try {
+                //stack-like to ensure loop
+                _toBeDeletedUri = Uri.parse(imageList.get(selectedImageIndices.get(selectedImageIndices.size()-1)).getImagePath());
+                ImageDeletion.deleteImage(_toBeDeletedUri,REQUEST_CODE_DELETE_IMAGES,requireActivity());
+            } catch (RecoverableSecurityException e) {
+                // Can't delete directly with contentResolver, handle RecoverableSecurityException
+                // Request the user to confirm deletion through the system dialog
+                Log.e("RecoverableSecurityException", e.getMessage());
+                PendingIntent pendingIntent = e.getUserAction().getActionIntent();
+                deleteImageLauncher.launch(new IntentSenderRequest(pendingIntent.getIntentSender(),null,0,0));
+
+            } catch (Exception e) {
+                Log.e("PictureFragment", "Error deleting image, an exception other than RecoverableSecurityException: ", e);
+                Toast.makeText(requireContext(),"Oops! Couldn't delete the image(s)...", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(getContext(), "Can't delete the image(s)", Toast.LENGTH_SHORT).show();
         }
     }
 }

@@ -111,7 +111,7 @@ public class SoloImageActivity extends AppCompatActivity {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                             Uri imageUri = Uri.parse(imagePaths.get(currentIndex));
                             try {
-                                ImageDeletion.deleteImage(new ArrayList<>(List.of(imageUri)), REQUEST_CODE_DELETE_IMAGE, this);
+                                ImageDeletion.deleteImage(imageUri, REQUEST_CODE_DELETE_IMAGE, this);
                             } catch (RecoverableSecurityException e) {
                                 // can't delete directly with contentResolver, handle RecoverableSecurityException
                                 Log.e("RecoverableSecurityException deleting an image", e.getMessage());
@@ -309,7 +309,7 @@ public class SoloImageActivity extends AppCompatActivity {
                     .setPositiveButton("OK", (dialog, which) ->{
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                             try {
-                                ImageDeletion.deleteImage(new ArrayList<>(List.of(_croppedImageUri)), REQUEST_CODE_DELETE_CROPPED_IMAGE,this);
+                                ImageDeletion.deleteImage(_croppedImageUri, REQUEST_CODE_DELETE_CROPPED_IMAGE,this);
                             }
                             catch (RecoverableSecurityException e) {
                                 // can't delete directly with contentResolver, handle RecoverableSecurityException
@@ -369,7 +369,7 @@ public class SoloImageActivity extends AppCompatActivity {
                         //do nothing
                     } else if(Build.VERSION.SDK_INT == Build.VERSION_CODES.Q){
                         if(_croppedImageUri != null){
-                            ImageDeletion.deleteImage(new ArrayList<>(List.of(_croppedImageUri)), REQUEST_CODE_DELETE_CROPPED_IMAGE,this);
+                            ImageDeletion.deleteImage(_croppedImageUri, REQUEST_CODE_DELETE_CROPPED_IMAGE,this);
                         }
                     }
                 } else {
@@ -386,10 +386,7 @@ public class SoloImageActivity extends AppCompatActivity {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                         finish();
                     } else if(Build.VERSION.SDK_INT == Build.VERSION_CODES.Q){
-                        List<Uri> imageUris =
-                                new ArrayList<>(List.of(Uri.parse(imagePaths.get(currentIndex))));
-
-                        if(ImageDeletion.deleteImage(imageUris, REQUEST_CODE_DELETE_IMAGE,this)){
+                        if(ImageDeletion.deleteImage(Uri.parse(imagePaths.get(currentIndex)), REQUEST_CODE_DELETE_IMAGE,this)){
                             finish();
                         }
                     }
