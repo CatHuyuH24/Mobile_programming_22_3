@@ -77,9 +77,6 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                     int position = getBindingAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
                         imageLongClickListener.onImageLongClickListener(position);
-                        ImageItem item = images.get(position);
-                        item.toggleIsSelected();
-                        notifyItemChanged(position);
                         return true;
                     }
                 }
@@ -96,5 +93,11 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                     .into(imageView);
             tickIcon.setVisibility(imageItem.isSelected()? View.VISIBLE: View.INVISIBLE);
         }
+    }
+
+    public void onLongImageClick(int index){
+        ImageItem item = images.get(index);
+        item.toggleIsSelected();
+        notifyItemChanged(index);
     }
 }

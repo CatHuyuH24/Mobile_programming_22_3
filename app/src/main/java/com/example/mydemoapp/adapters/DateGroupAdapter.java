@@ -78,6 +78,6 @@ public class DateGroupAdapter extends RecyclerView.Adapter<DateGroupAdapter.Date
     }
 
     public void onLongImageClick(int index){
-        Toast.makeText(context,"long clicked "+index, Toast.LENGTH_SHORT).show();
+        imageAdapter.onLongImageClick(index);
     }
 }

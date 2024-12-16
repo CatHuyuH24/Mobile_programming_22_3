@@ -5,11 +5,14 @@
     android:orientation="vertical">
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/selected_images_number"
-        android:text="Selected Images: 0"
         android:textSize="24sp"
+        android:layout_gravity="center"
+        android:background="@color/light_purple"
+        android:textColor="@android:color/white"
+        android:gravity="start|center_vertical"
         android:visibility="invisible"/>
 
     <androidx.recyclerview.widget.RecyclerView

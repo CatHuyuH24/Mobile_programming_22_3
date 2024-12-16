@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -32,7 +33,7 @@ public class PictureFragment extends Fragment {
     private List<String> selectedImagePaths = new ArrayList<>();
     private DateGroupAdapter dateGroupAdapter;
 
-    private final int REQUEST_CODE_SELECT_IMAGES = 101;
+    private TextView selectedImageNumber;
 
     @Nullable
     @Override
@@ -43,6 +44,7 @@ public class PictureFragment extends Fragment {
         RecyclerView recyclerView = binding.recyclerView;
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
+        selectedImageNumber = binding.selectedImagesNumber;
         // Initialize empty list for images
         imageList = new ArrayList<>();
 
@@ -99,7 +101,6 @@ public class PictureFragment extends Fragment {
     }
 
     private void onImageClick(int imageIndex) {
-        // Find the index of the clicked image
 //        int index = -1;
 //        for (int i = 0; i < imageList.size(); i++) {
 //            if (imageList.get(i).getImagePath().equals(imagePath)) {
@@ -108,13 +109,19 @@ public class PictureFragment extends Fragment {
 //            }
 //        }
 
-        if (imageIndex != -1) {
-            // Create an intent to start SoloImageActivity
-            Intent intent = new Intent(getActivity(), SoloImageActivity.class);
-            intent.putStringArrayListExtra("IMAGE_PATHS", getImagePathsFromList(imageList));
-            intent.putExtra("CURRENT_IMAGE_INDEX", imageIndex);
-            startActivity(intent);
+        if(isSelectionMode){
+            toggleSelectionAndNotify(imageIndex);
+        } else {
+            if (imageIndex != -1) {
+                // Create an intent to start SoloImageActivity
+                Intent intent = new Intent(getActivity(), SoloImageActivity.class);
+                intent.putStringArrayListExtra("IMAGE_PATHS", getImagePathsFromList(imageList));
+                intent.putExtra("CURRENT_IMAGE_INDEX", imageIndex);
+                startActivity(intent);
+            }
         }
+
+
     }
 
     private void onLongImageClick(int imageIndex){
@@ -125,7 +132,29 @@ public class PictureFragment extends Fragment {
 //                break;
 //            }
 //        }
-        Toast.makeText(getContext(), "long clicked picture frag "+imageIndex, Toast.LENGTH_SHORT).show();
+        if(!isSelectionMode){
+            isSelectionMode = true;
+            selectedImageNumber.setVisibility(View.VISIBLE);
+        }
+
+        toggleSelectionAndNotify(imageIndex);
+    }
+
+    private void toggleSelectionAndNotify(int imageIndex){
+        String imagePath = imageList.get(imageIndex).getImagePath();
+        if(selectedImagePaths.contains(imagePath)){
+            selectedImagePaths.remove(imagePath);
+        } else {
+            selectedImagePaths.add(imagePath);
+        }
         dateGroupAdapter.onLongImageClick(imageIndex);
+
+        String numberNotification = "Selected "+selectedImagePaths.size()+" images";
+        selectedImageNumber.setText(numberNotification);
+
+        if(selectedImagePaths.isEmpty()){
+            isSelectionMode = false;
+            selectedImageNumber.setVisibility(View.INVISIBLE);
+        }
     }
 }
