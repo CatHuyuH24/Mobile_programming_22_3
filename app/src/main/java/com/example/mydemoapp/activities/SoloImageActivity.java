@@ -108,7 +108,7 @@ public class SoloImageActivity extends AppCompatActivity {
                             Uri imageUri = Uri.parse(imagePaths.get(currentIndex));
                             boolean deletedSuccessfully = false;
                             try {
-                                deletedSuccessfully = deleteImage(imageUri);
+                                deletedSuccessfully = deleteImage(imageUri, REQUEST_CODE_DELETE_IMAGE);
                             } catch (RecoverableSecurityException e) {
                                 // can't delete directly with contentResolver, handle RecoverableSecurityException
                                 Log.e("RecoverableSecurityException deleting an image", e.getMessage());
@@ -262,8 +262,8 @@ public class SoloImageActivity extends AppCompatActivity {
                 //delete the newly cropped image, whether setting image as wallpaper succeeds or not
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     try {
-                        boolean deletedSucessfully = deleteImage(_croppedImageUri);
-                        if (deletedSucessfully) {
+                        boolean deletedSuccessfully = deleteImage(_croppedImageUri, REQUEST_CODE_DELETE_CROPPED_IMAGE);
+                        if (deletedSuccessfully) {
                             Log.i("SoloImageActivity", "Cropped image deleted successfully");
                         }
                     } catch (RecoverableSecurityException e) {
@@ -323,15 +323,22 @@ public class SoloImageActivity extends AppCompatActivity {
          * Deletes the image using the ContentResolver.
          *
          * @param imageUri The Uri of the image.
+         * @param requestCode The request code for the activity, either REQUEST_CODE_DELETE_IMAGE or REQUEST_CODE_DELETE_CROPPED_IMAGE.
          * @return true if the image was deleted successfully, false otherwise.
          */
         @RequiresApi(api = Build.VERSION_CODES.Q)
-        private boolean deleteImage(Uri imageUri) {
+        private boolean deleteImage(Uri imageUri, int requestCode) throws IntentSender.SendIntentException {
             try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    // Create the request and also handling deletion, read the docs of MediaStore.createDeleteRequest
+                    PendingIntent intent = MediaStore.createDeleteRequest(getContentResolver(), new ArrayList<>(List.of(imageUri)));
+                    startIntentSenderForResult(intent.getIntentSender(), requestCode, null, 0, 0, 0);
+                    return true;
+                }
 
+                // Handle the old way of deleting the image
                 // Check if the URI is a content URI or file URI
                 if ("content".equals(imageUri.getScheme())) {
-                    Log.e("testing deleting image content", imageUri.getScheme());
                     // Use ContentResolver to delete the content
                     int rowsDeleted = getContentResolver().delete(imageUri, null, null);
                     return rowsDeleted > 0;
@@ -372,12 +379,13 @@ public class SoloImageActivity extends AppCompatActivity {
 
         if (requestCode == REQUEST_CODE_DELETE_CROPPED_IMAGE) {
             try{
-                if (resultCode == RESULT_OK) {
-                    if (_croppedImageUri != null) {
-                        getContentResolver().delete(_croppedImageUri, null, null);
-                        Log.i("SoloImageActivity", "Image deleted successfully after user confirmation");
-                    } else {
-                        Log.e("SoloImageActivity", "Cropped image URI is null while trying to re-delete");
+                if(resultCode == RESULT_OK){
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        finish();
+                    } else if(Build.VERSION.SDK_INT == Build.VERSION_CODES.Q){
+                        if(_croppedImageUri != null && deleteImage(_croppedImageUri, REQUEST_CODE_DELETE_CROPPED_IMAGE)){
+                            finish();
+                        }
                     }
                 } else {
                     Log.e("SoloImageActivity", "User denied deletion");
@@ -390,8 +398,12 @@ public class SoloImageActivity extends AppCompatActivity {
         if(requestCode == REQUEST_CODE_DELETE_IMAGE){
             try {
                 if(resultCode == RESULT_OK){
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        deleteImage(Uri.parse(imagePaths.get(currentIndex)));
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        finish();
+                    } else if(Build.VERSION.SDK_INT == Build.VERSION_CODES.Q){
+                        if(deleteImage(Uri.parse(imagePaths.get(currentIndex)), REQUEST_CODE_DELETE_IMAGE)){
+                            finish();
+                        }
                     }
                 }
                 else {
