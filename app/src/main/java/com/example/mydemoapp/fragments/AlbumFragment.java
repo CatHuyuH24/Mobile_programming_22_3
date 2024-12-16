@@ -5,8 +5,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -29,7 +29,7 @@ import java.util.List;
 
 public class AlbumFragment extends Fragment {
     // UI components
-    private Button addAlbumButton;
+    private ImageButton addAlbumButton;
     private RecyclerView albumRecyclerView;
 
     // Data
@@ -40,7 +40,7 @@ public class AlbumFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-            @Nullable Bundle savedInstanceState) {
+                             @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_album, container, false);
 
         addAlbumButton = view.findViewById(R.id.add_album_button);
