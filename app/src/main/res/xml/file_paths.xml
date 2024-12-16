@@ -1,11 +1,7 @@
-<paths xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Allow access to external files -->
-    <external-path
-        name="external_files"
-        path="." />
+<?xml version="1.0" encoding="utf-8" ?>
+<paths>
+    <cache-path
+        name="shared_images"
+        path="images/"/>
 
-    <!-- Optionally allow access to images directory -->
-    <external-path
-        name="images"
-        path="Android/data/com.example.mydemoapp/files/Pictures" />
 </paths>

@@ -8,6 +8,7 @@ import android.content.IntentSender;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -41,7 +42,9 @@ import com.example.mydemoapp.utilities.AlbumManager;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -99,64 +102,42 @@ public class SoloImageActivity extends AppCompatActivity {
     }
 
     private void shareImage() {
-        if (imagePaths != null && currentIndex >= 0 && currentIndex < imagePaths.size()) {
-            // Get the current image path
-            String imagePath = imagePaths.get(currentIndex);
-            File imageFile = new File(imagePath);
-
-            Log.d("ShareImage", "Image path: " + imagePath);
-            Log.d("ShareImage", "Image exists: " + imageFile.exists());
-            if (imageFile.exists()) { // Check if the file exists
-                // Decode the image file into a Bitmap
-                Bitmap bitmap = BitmapFactory.decodeFile(imagePath);
-
-                if (bitmap != null) {
-                    // Create an Intent to share the image
-                    Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                    shareIntent.setType("image/png");
-
-                    // Save the bitmap to a temporary file
-                    File tempFile = new File(getCacheDir(), "shared_image.png");
-                    try (FileOutputStream out = new FileOutputStream(tempFile)) {
-                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
-                        Uri imageUri = FileProvider.getUriForFile(
-                                this,
-                                "com.example.mydemoapp.fileprovider", // Ensure this matches your file provider's authority
-                                tempFile
-                        );
-
-                        // Put extra data into the share intent
-                        shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
-                        shareIntent.putExtra(Intent.EXTRA_TEXT, "Sharing Image");
-                        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Image Subject");
-                        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
-                        // Show the sharing options
-                        Intent chooserIntent = Intent.createChooser(shareIntent, "Share image via");
-
-                        if (shareIntent.resolveActivity(getPackageManager()) != null) {
-                            startActivity(chooserIntent);
-                        } else {
-                            Toast.makeText(this, "No app found to share the image", Toast.LENGTH_SHORT).show();
-                        }
-                    } catch (Exception e) {
-                        Log.e("ShareImage", "Error sharing image: " + e.getMessage());
-                        Toast.makeText(this, "Failed to share image", Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    // Show error if Bitmap could not be loaded
-                    Toast.makeText(this, "Failed to load image!", Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                // Show error if file does not exist
-                Toast.makeText(this, "Image file not found!", Toast.LENGTH_SHORT).show();
-            }
-        } else {
-            // Show error if index is invalid
-            Toast.makeText(this, "Invalid image or index!", Toast.LENGTH_SHORT).show();
-        }
+        BitmapDrawable bitmapDrawable = (BitmapDrawable) soloImageView.getDrawable();
+        Bitmap bitmap = bitmapDrawable.getBitmap();
+        shareImageAndText(bitmap);
     }
 
+    private void shareImageAndText(Bitmap bitmap) {
+        Uri uri = getImageToShare(bitmap);
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.putExtra(Intent.EXTRA_TEXT, "image text");
+        intent.putExtra(Intent.EXTRA_SUBJECT, "image subject");
+        intent.setType("image/*");
+        startActivity(Intent.createChooser(intent, "Share image"));
+    }
+
+    private Uri getImageToShare(Bitmap bitmap) {
+        File folder = new File(getCacheDir(), "images");
+        Uri uri = null;
+        try {
+            folder.mkdirs();
+            File file = new File(folder, "image.jpg");
+
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fileOutputStream);
+            fileOutputStream.flush();
+            fileOutputStream.close();
+
+            uri = FileProvider.getUriForFile(this, "com.example.mydemoapp", file);
+
+        } catch (Exception e) {
+            Toast.makeText(this, "Failed to share image: " + e, Toast.LENGTH_LONG).show();
+            throw new RuntimeException(e);
+        }
+
+        return uri;
+    }
 
     private void loadImage(int index) {
         // Load the image using Glide
