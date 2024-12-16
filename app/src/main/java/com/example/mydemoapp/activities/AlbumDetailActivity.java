@@ -111,9 +111,7 @@ public class AlbumDetailActivity extends AppCompatActivity {
 
                         Toast.makeText(this, "Album deleted", Toast.LENGTH_SHORT).show();
 
-                        Intent intent = new Intent(this, MainActivity.class);
-                        startActivity(intent);
-                        finish();
+                        onBackPressed();
                     })
                     .setNegativeButton("Cancel", null)
                     .show();
