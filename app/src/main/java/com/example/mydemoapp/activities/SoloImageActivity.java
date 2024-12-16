@@ -110,10 +110,11 @@ public class SoloImageActivity extends AppCompatActivity {
     private void shareImageAndText(Bitmap bitmap) {
         Uri uri = getImageToShare(bitmap);
         Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.putExtra(Intent.EXTRA_STREAM, uri);
         intent.putExtra(Intent.EXTRA_TEXT, "image text");
         intent.putExtra(Intent.EXTRA_SUBJECT, "image subject");
         intent.setType("image/*");
-        startActivity(Intent.createChooser(intent, "Share image"));
+        startActivity(Intent.createChooser(intent, "Share Via"));
     }
 
     private Uri getImageToShare(Bitmap bitmap) {
@@ -129,7 +130,7 @@ public class SoloImageActivity extends AppCompatActivity {
             fileOutputStream.flush();
             fileOutputStream.close();
 
-            uri = FileProvider.getUriForFile(this, "com.example.mydemoapp", file);
+            uri = FileProvider.getUriForFile(this, "com.example.mydemoapp.fileprovider", file);
 
         } catch (Exception e) {
             Toast.makeText(this, "Failed to share image: " + e, Toast.LENGTH_LONG).show();
