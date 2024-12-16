@@ -31,6 +31,8 @@ import com.example.mydemoapp.utilities.AlbumManager;
 import com.example.mydemoapp.utilities.ImageFetcher;
 import com.example.mydemoapp.utilities.ImageGrouping;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -252,16 +254,26 @@ public class AlbumFragment extends Fragment {
         PopupMenu popupMenu = new PopupMenu(requireContext(), view);
         popupMenu.getMenuInflater().inflate(R.menu.album_menu, popupMenu.getMenu());
 
+        // Đặt nền tùy chỉnh cho PopupMenu
+        try {
+            Field mPopup = PopupMenu.class.getDeclaredField("mPopup");
+            mPopup.setAccessible(true);
+            Object menuPopupHelper = mPopup.get(popupMenu);
+            Class<?> classPopupHelper = Class.forName(menuPopupHelper.getClass().getName());
+            Method setForceIcons = classPopupHelper.getMethod("setForceShowIcon", boolean.class);
+            setForceIcons.invoke(menuPopupHelper, true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
+        // Đặt nền tùy chỉnh cho PopupMenu
         popupMenu.setOnMenuItemClickListener(item -> {
             int itemId = item.getItemId();
 
             if (itemId == R.id.add_album) {
-                // Xử lý thêm album
                 showAddAlbumDialog();
                 return true;
             } else if (itemId == R.id.delete_album) {
-                // Xử lý xóa album
                 removeAlbum();
                 return true;
             }
@@ -269,7 +281,7 @@ public class AlbumFragment extends Fragment {
             return false;
         });
 
-
+        // Đặt nền tùy chỉnh cho PopupMenu
         popupMenu.show();
 
     }
