@@ -58,24 +58,10 @@ public class PictureFragment extends Fragment {
                     }
 
                     // Initialize the adapter with a click listener
-                    DateGroupAdapter dateGroupAdapter = new DateGroupAdapter(getContext(), dateGroups, imagePath -> {
-                        // Find the index of the clicked image
-                        int index = -1;
-                        for (int i = 0; i < imageList.size(); i++) {
-                            if (imageList.get(i).getImagePath().equals(imagePath)) {
-                                index = i;
-                                break;
-                            }
-                        }
-
-                        if (index != -1) {
-                            // Create an intent to start SoloImageActivity
-                            Intent intent = new Intent(getActivity(), SoloImageActivity.class);
-                            intent.putStringArrayListExtra("IMAGE_PATHS", getImagePathsFromList(imageList));
-                            intent.putExtra("CURRENT_IMAGE_INDEX", index);
-                            startActivity(intent);
-                        }
-                    });
+                    DateGroupAdapter dateGroupAdapter =
+                            new DateGroupAdapter(getContext(), dateGroups,
+                                    imagePath -> onImageClick(imagePath),
+                                    imagePathLongClick -> onLongImageClick(imagePathLongClick));
 
                     // Set the adapter
                     recyclerView.setAdapter(dateGroupAdapter);
@@ -97,7 +83,6 @@ public class PictureFragment extends Fragment {
         ArrayList<String> imagePaths = new ArrayList<>();
         for (ImageItem item : imageList) {
             imagePaths.add(item.getImagePath());
-
         }
         return imagePaths;
     }
@@ -106,5 +91,28 @@ public class PictureFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+    }
+
+    private void onImageClick(String imagePath) {
+        // Find the index of the clicked image
+        int index = -1;
+        for (int i = 0; i < imageList.size(); i++) {
+            if (imageList.get(i).getImagePath().equals(imagePath)) {
+                index = i;
+                break;
+            }
+        }
+
+        if (index != -1) {
+            // Create an intent to start SoloImageActivity
+            Intent intent = new Intent(getActivity(), SoloImageActivity.class);
+            intent.putStringArrayListExtra("IMAGE_PATHS", getImagePathsFromList(imageList));
+            intent.putExtra("CURRENT_IMAGE_INDEX", index);
+            startActivity(intent);
+        }
+    }
+
+    private void onLongImageClick(String imagePath){
+        Toast.makeText(getContext(),"long click",Toast.LENGTH_SHORT).show();
     }
 }

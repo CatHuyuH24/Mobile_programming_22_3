@@ -24,12 +24,14 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_READ_EXTERNAL_STORAGE = 1;
     private static final int REQUEST_CODE_READ_MEDIA_IMAGES = 2;
     private static final int REQUEST_CODE_WRITE_EXTERNAL_STORAGE = 3;
+    private BottomNavigationView bottomNavigationView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
 
         bottomNavigationView.setOnItemSelectedListener(item -> {
             if (item.getItemId() == PICTURES_ID) {
@@ -42,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+        bottomNavigationView.setSelectedItemId(PICTURES_ID);
 
         // Request permissions based on the device's API level
         requestPermissionsIfNeeded();
@@ -51,7 +54,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         // Set default fragment
-        replaceFragment(new PictureFragment());
+        int selectedId = bottomNavigationView.getSelectedItemId();
+        if (selectedId == PICTURES_ID) {
+            replaceFragment(new PictureFragment());
+        } else if (selectedId == ALBUM_ID) {
+            replaceFragment(new AlbumFragment());
+        }
     }
 
     private void requestPermissionsIfNeeded() {

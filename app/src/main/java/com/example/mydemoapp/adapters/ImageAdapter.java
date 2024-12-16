@@ -21,11 +21,15 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     private final Context context;
     private final List<ImageItem> images;
     private final DateGroupAdapter.OnImageClickListener imageClickListener;
+    private final DateGroupAdapter.OnImageLongClickListener imageLongClickListener;
 
-    public ImageAdapter(Context context, List<ImageItem> images, DateGroupAdapter.OnImageClickListener imageClickListener) {
+    public ImageAdapter(Context context, List<ImageItem> images,
+                        DateGroupAdapter.OnImageClickListener imageClickListener,
+                        DateGroupAdapter.OnImageLongClickListener imageLongClickListener) {
         this.context = context;
         this.images = images;
         this.imageClickListener = imageClickListener; // Accept listener
+        this.imageLongClickListener = imageLongClickListener;
     }
 
     @NonNull
@@ -61,6 +65,17 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                         imageClickListener.onImageClick(images.get(position).getImagePath());
                     }
                 }
+            });
+
+            itemView.setOnLongClickListener(view -> {
+                if (imageLongClickListener != null) {
+                    int position = getBindingAdapterPosition();
+                    if (position != RecyclerView.NO_POSITION) {
+                        imageLongClickListener.onImageLongClickListener(images.get(position).getImagePath());
+                        return true;
+                    }
+                }
+                return false;
             });
         }
 

@@ -117,7 +117,10 @@ public class AlbumFragment extends Fragment {
                 intent.putExtra("CURRENT_IMAGE_INDEX", index);
                 startActivity(intent);
             }
-        });
+        }, imagePathLongClick -> {
+            Toast.makeText(getContext(),"long click in album", Toast.LENGTH_SHORT).show();
+        }
+                );
 
         recyclerView.setAdapter(dateGroupAdapter);
     }

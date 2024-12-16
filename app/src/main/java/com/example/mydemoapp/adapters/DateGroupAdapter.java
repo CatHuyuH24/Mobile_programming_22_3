@@ -19,11 +19,15 @@ public class DateGroupAdapter extends RecyclerView.Adapter<DateGroupAdapter.Date
     private final List<DateGroup> dateGroups;
     private final Context context;
     private final OnImageClickListener imageClickListener;
+    private final OnImageLongClickListener imageLongClickListener;
 
-    public DateGroupAdapter(Context context, List<DateGroup> dateGroups, OnImageClickListener imageClickListener) {
+    public DateGroupAdapter(Context context, List<DateGroup> dateGroups,
+                            OnImageClickListener imageClickListener,
+                            OnImageLongClickListener imageLongClickListener) {
         this.dateGroups = dateGroups;
         this.context = context;
         this.imageClickListener = imageClickListener; // Accept listener
+        this.imageLongClickListener = imageLongClickListener;
     }
 
     @NonNull
@@ -59,12 +63,16 @@ public class DateGroupAdapter extends RecyclerView.Adapter<DateGroupAdapter.Date
 
             int numberOfCol = 4;
             recyclerView.setLayoutManager(new GridLayoutManager(context, numberOfCol));
-            ImageAdapter imageAdapter = new ImageAdapter(context, dateGroup.getImages(), imageClickListener); // Pass listener to adapter
+            ImageAdapter imageAdapter = new ImageAdapter(context, dateGroup.getImages(), imageClickListener, imageLongClickListener); // Pass listener to adapter
             recyclerView.setAdapter(imageAdapter);
         }
     }
 
     public interface OnImageClickListener {
         void onImageClick(String imagePath);
+    }
+
+    public interface OnImageLongClickListener{
+        void onImageLongClickListener(String imagePath);
     }
 }
