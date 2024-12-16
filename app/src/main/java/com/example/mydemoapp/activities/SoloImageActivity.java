@@ -52,8 +52,9 @@ public class SoloImageActivity extends AppCompatActivity {
     private ArrayList<String> imagePaths;
     private int currentIndex;
 
-    private final int CROP_REQUEST_CODE = 1;
-    private final int REQUEST_CODE_DELETE_IMAGE = 2;
+    private final int CROP_REQUEST_CODE = 4;
+    private final int REQUEST_CODE_DELETE_IMAGE = 5;
+    private final int REQUEST_CODE_DELETE_CROPPED_IMAGE = 6;
 
     private Uri _croppedImageUri;
 
@@ -132,8 +133,6 @@ public class SoloImageActivity extends AppCompatActivity {
 
                             if(deletedSuccessfully){
                                 finish();
-                            }else {
-                                Toast.makeText(this,"Couldn't delete the image",Toast.LENGTH_SHORT).show();
                             }
                         } else {
                             Toast.makeText(this, "Can't delete the image", Toast.LENGTH_SHORT).show();
@@ -274,7 +273,7 @@ public class SoloImageActivity extends AppCompatActivity {
                         PendingIntent pendingIntent = e.getUserAction().getActionIntent();
 
                         // Show your custom explanation and trigger the system dialog
-                        showCustomDeletionExplanationDialogAndRequestDeletionPermission(_croppedImageUri, pendingIntent);
+                        croppedShowDeletionExplanationAndRequestPermission(_croppedImageUri, pendingIntent);
                     } catch (Exception e) {
                         Log.e("SoloImageActivity", "Error deleting cropped image, an exception other than RecoverableSecurityException: ", e);
                     }
@@ -295,7 +294,7 @@ public class SoloImageActivity extends AppCompatActivity {
          *
          * @param croppedImageUri The Uri of the cropped image.
          */
-        private void showCustomDeletionExplanationDialogAndRequestDeletionPermission(Uri croppedImageUri, PendingIntent intent) {
+        private void croppedShowDeletionExplanationAndRequestPermission(Uri croppedImageUri, PendingIntent intent) {
             // Show a dialog explaining why you're requesting permission to delete the image
             new AlertDialog.Builder(this)
                     .setTitle("Permission Request")
@@ -305,7 +304,7 @@ public class SoloImageActivity extends AppCompatActivity {
                             // Show the dialog to the user to confirm deletion
                             startIntentSenderForResult(
                                     intent.getIntentSender(),
-                                    REQUEST_CODE_DELETE_IMAGE,
+                                    REQUEST_CODE_DELETE_CROPPED_IMAGE,
                                     null,
                                     0,
                                     0,
@@ -371,19 +370,37 @@ public class SoloImageActivity extends AppCompatActivity {
             setWallpaper();
         }
 
-        if (requestCode == REQUEST_CODE_DELETE_IMAGE) {
-            if (resultCode == RESULT_OK) {
-                try{
+        if (requestCode == REQUEST_CODE_DELETE_CROPPED_IMAGE) {
+            try{
+                if (resultCode == RESULT_OK) {
                     if (_croppedImageUri != null) {
                         getContentResolver().delete(_croppedImageUri, null, null);
                         Log.i("SoloImageActivity", "Image deleted successfully after user confirmation");
+                    } else {
+                        Log.e("SoloImageActivity", "Cropped image URI is null while trying to re-delete");
                     }
-                }catch (Exception e){
-                    Log.e("Exception occurred while trying to re-delete the image ",e.getMessage());
+                } else {
+                    Log.e("SoloImageActivity", "User denied deletion");
                 }
-            } else {
-                Log.e("SoloImageActivity", "User denied deletion");
+            }catch (Exception e) {
+                Log.e("Exception occurred while trying to re-delete the CROPPED image ", e.getMessage());
             }
+        }
+
+        if(requestCode == REQUEST_CODE_DELETE_IMAGE){
+            try {
+                if(resultCode == RESULT_OK){
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        deleteImage(Uri.parse(imagePaths.get(currentIndex)));
+                    }
+                }
+                else {
+                    Log.e("SoloImageActivity", "User denied deletion");
+                }
+            } catch (Exception e){
+                Log.e("Exception occurred while trying to re-delete the image ",e.getMessage());
+            }
+
         }
     }
 
