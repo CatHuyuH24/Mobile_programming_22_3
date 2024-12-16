@@ -47,7 +47,7 @@ import java.util.List;
 public class SoloImageActivity extends AppCompatActivity {
     private ImageView soloImageView;
     private TextView tvTitle;
-    private Button backBtn, setBackgroundBtn, addToAlbumBtn, deleteFromAlbumBtn;
+    private Button backBtn, setBackgroundBtn, addToAlbumBtn, deleteFromAlbumBtn, deleteImageBtn;
 
     private ArrayList<String> imagePaths;
     private int currentIndex;
@@ -70,7 +70,8 @@ public class SoloImageActivity extends AppCompatActivity {
         setBackgroundBtn = findViewById(R.id.btn_solo_set_background);
         addToAlbumBtn = findViewById(R.id.btn_solo_add_to_album);
         deleteFromAlbumBtn = findViewById(R.id.btn_solo_delete_from_album);
-
+        
+        deleteImageBtn = findViewById(R.id.btn_delete_image);
         // Get the data from the intent
         imagePaths = getIntent().getStringArrayListExtra("IMAGE_PATHS");
         currentIndex = getIntent().getIntExtra("CURRENT_IMAGE_INDEX", -1);
@@ -91,6 +92,60 @@ public class SoloImageActivity extends AppCompatActivity {
         // Delete from album button
         deleteFromAlbumBtn.setOnClickListener(view -> deleteFromAlbum());
         gestureDetector = new GestureDetector(this, new MyGestureListener());
+
+        deleteImageBtn.setOnClickListener(view -> {
+            AlbumManager albumManager = new AlbumManager(this);
+
+            // Create and show the dialog box
+            new AlertDialog.Builder(this)
+                    .setTitle("Delete Image")
+                    .setMessage("Are you sure you want to delete this image?")
+                    .setPositiveButton("Yes", (dialog, which) -> {
+                        albumManager.removeImageFromAlbum("all", imagePaths.get(currentIndex));
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            Uri imageUri = Uri.parse(imagePaths.get(currentIndex));
+                            boolean deletedSuccessfully = false;
+                            try {
+                                deletedSuccessfully = deleteImage(imageUri);
+                            } catch (RecoverableSecurityException e) {
+                                // can't delete directly with contentResolver, handle RecoverableSecurityException
+                                Log.e("RecoverableSecurityException deleting an image", e.getMessage());
+
+                                // Request the user to confirm deletion through the system dialog
+                                PendingIntent pendingIntent = e.getUserAction().getActionIntent();
+                                try {
+                                    startIntentSenderForResult(
+                                            pendingIntent.getIntentSender(),
+                                            REQUEST_CODE_DELETE_IMAGE,
+                                            null,
+                                            0,
+                                            0,
+                                            0
+                                    );
+                                } catch (IntentSender.SendIntentException ex) {
+                                    throw new RuntimeException(ex);
+                                }
+                            } catch (Exception e) {
+                                Log.e("SoloImageActivity", "Error deleting image, an exception other than RecoverableSecurityException: ", e);
+                            }
+
+                            if(deletedSuccessfully){
+                                finish();
+                            }else {
+                                Toast.makeText(this,"Couldn't delete the image",Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            Toast.makeText(this, "Can't delete the image", Toast.LENGTH_SHORT).show();
+                            finish();
+                        }
+                    })
+                    .setNegativeButton("No", (dialog, which) -> {
+                        dialog.dismiss(); // Close the dialog if the user cancels
+                    })
+                    .show();
+        });
+
     }
 
     private void loadImage(int index) {
@@ -207,9 +262,23 @@ public class SoloImageActivity extends AppCompatActivity {
             } finally {
                 //delete the newly cropped image, whether setting image as wallpaper succeeds or not
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    if (deleteCroppedImage(_croppedImageUri)) {
-                        Log.i("SoloImageActivity", "Cropped image deleted successfully");
+                    try {
+                        boolean deletedSucessfully = deleteImage(_croppedImageUri);
+                        if (deletedSucessfully) {
+                            Log.i("SoloImageActivity", "Cropped image deleted successfully");
+                        }
+                    } catch (RecoverableSecurityException e) {
+                        // can't delete directly with contentResolver, handle RecoverableSecurityException
+                        Log.e("RecoverableSecurityException", e.getMessage());
+                        // Request the user to confirm deletion through the system dialog
+                        PendingIntent pendingIntent = e.getUserAction().getActionIntent();
+
+                        // Show your custom explanation and trigger the system dialog
+                        showCustomDeletionExplanationDialogAndRequestDeletionPermission(_croppedImageUri, pendingIntent);
+                    } catch (Exception e) {
+                        Log.e("SoloImageActivity", "Error deleting cropped image, an exception other than RecoverableSecurityException: ", e);
                     }
+
                 }
                 else {
                     Toast.makeText(this,"Can't delete the cropped image",Toast.LENGTH_SHORT).show();
@@ -252,40 +321,33 @@ public class SoloImageActivity extends AppCompatActivity {
         }
 
         /**
-         * Deletes the cropped image using the ContentResolver.
+         * Deletes the image using the ContentResolver.
          *
-         * @param croppedImageUri The Uri of the cropped image.
+         * @param imageUri The Uri of the image.
          * @return true if the image was deleted successfully, false otherwise.
          */
         @RequiresApi(api = Build.VERSION_CODES.Q)
-        private boolean deleteCroppedImage(Uri croppedImageUri) {
+        private boolean deleteImage(Uri imageUri) {
             try {
 
                 // Check if the URI is a content URI or file URI
-                if ("content".equals(croppedImageUri.getScheme())) {
-                    Log.e("testing deleting image content",croppedImageUri.getScheme());
+                if ("content".equals(imageUri.getScheme())) {
+                    Log.e("testing deleting image content", imageUri.getScheme());
                     // Use ContentResolver to delete the content
-                    int rowsDeleted = getContentResolver().delete(croppedImageUri, null, null);
+                    int rowsDeleted = getContentResolver().delete(imageUri, null, null);
                     return rowsDeleted > 0;
                 }
-                if ("file".equals(croppedImageUri.getScheme())) {
+                if ("file".equals(imageUri.getScheme())) {
                     // Directly delete the file
-                    File file = new File(croppedImageUri.getPath());
+                    File file = new File(imageUri.getPath());
                     return file.exists() && file.delete();
                 }
-            } catch (RecoverableSecurityException e) {
-                // can't delete directly with contentResolver, handle RecoverableSecurityException
-                Log.e("RecoverableSecurityException", e.getMessage());
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-
-                    // Request the user to confirm deletion through the system dialog
-                    PendingIntent pendingIntent = e.getUserAction().getActionIntent();
-
-                    // Show your custom explanation and trigger the system dialog
-                    showCustomDeletionExplanationDialogAndRequestDeletionPermission(croppedImageUri, pendingIntent);
-                }
+            } catch(RecoverableSecurityException e){
+                Log.e("SoloImageActivity RecoverableSecurityException", "Error deleting image with image URI, an exception occurred: ", e);
+                throw e;
             } catch (Exception e) {
-                Log.e("SoloImageActivity", "Error deleting cropped image, an exception other than RecoverableSecurityException: ", e);
+                Log.e("SoloImageActivity", "Error deleting image with image URI, an exception occurred: ", e);
+                throw e;
             }
             return false;
         }
