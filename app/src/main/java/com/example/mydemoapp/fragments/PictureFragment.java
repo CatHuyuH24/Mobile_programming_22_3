@@ -1,5 +1,7 @@
 package com.example.mydemoapp.fragments;
 
+import static android.app.Activity.RESULT_OK;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -24,10 +26,16 @@ import com.example.mydemoapp.utilities.ImageGrouping;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class PictureFragment extends Fragment {
     private FragmentPictureBinding binding;
     private List<ImageItem> imageList; // Create imageList
+    private boolean isSelectionMode = false;
+    private List<String> selectedImagePaths = new ArrayList<>();
+    private DateGroupAdapter dateGroupAdapter;
+
+    private final int REQUEST_CODE_SELECT_IMAGES = 101;
 
     @Nullable
     @Override
@@ -58,7 +66,7 @@ public class PictureFragment extends Fragment {
                     }
 
                     // Initialize the adapter with a click listener
-                    DateGroupAdapter dateGroupAdapter =
+                    dateGroupAdapter =
                             new DateGroupAdapter(getContext(), dateGroups,
                                     imagePath -> onImageClick(imagePath),
                                     imagePathLongClick -> onLongImageClick(imagePathLongClick));
@@ -113,6 +121,13 @@ public class PictureFragment extends Fragment {
     }
 
     private void onLongImageClick(String imagePath){
-        Toast.makeText(getContext(),"long click",Toast.LENGTH_SHORT).show();
+        int index = -1;
+        for (int i = 0; i < imageList.size(); i++) {
+            if (imageList.get(i).getImagePath().equals(imagePath)) {
+                index = i;
+                break;
+            }
+        }
+        dateGroupAdapter.onLongImageClick(index);
     }
 }

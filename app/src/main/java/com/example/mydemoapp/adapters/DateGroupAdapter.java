@@ -20,7 +20,7 @@ public class DateGroupAdapter extends RecyclerView.Adapter<DateGroupAdapter.Date
     private final Context context;
     private final OnImageClickListener imageClickListener;
     private final OnImageLongClickListener imageLongClickListener;
-
+    private ImageAdapter imageAdapter;
     public DateGroupAdapter(Context context, List<DateGroup> dateGroups,
                             OnImageClickListener imageClickListener,
                             OnImageLongClickListener imageLongClickListener) {
@@ -63,7 +63,7 @@ public class DateGroupAdapter extends RecyclerView.Adapter<DateGroupAdapter.Date
 
             int numberOfCol = 4;
             recyclerView.setLayoutManager(new GridLayoutManager(context, numberOfCol));
-            ImageAdapter imageAdapter = new ImageAdapter(context, dateGroup.getImages(), imageClickListener, imageLongClickListener); // Pass listener to adapter
+            imageAdapter = new ImageAdapter(context, dateGroup.getImages(), imageClickListener, imageLongClickListener); // Pass listener to adapter
             recyclerView.setAdapter(imageAdapter);
         }
     }
@@ -74,5 +74,9 @@ public class DateGroupAdapter extends RecyclerView.Adapter<DateGroupAdapter.Date
 
     public interface OnImageLongClickListener{
         void onImageLongClickListener(String imagePath);
+    }
+
+    public void onLongImageClick(int index){
+        imageAdapter.onLongImageClick(index);
     }
 }

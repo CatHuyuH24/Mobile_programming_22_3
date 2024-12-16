@@ -1,10 +1,13 @@
 package com.example.mydemoapp.adapters;
 
+import static java.security.AccessController.getContext;
+
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -15,6 +18,7 @@ import com.bumptech.glide.request.target.Target;
 import com.example.mydemoapp.R;
 import com.example.mydemoapp.models.ImageItem;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHolder> {
@@ -22,6 +26,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     private final List<ImageItem> images;
     private final DateGroupAdapter.OnImageClickListener imageClickListener;
     private final DateGroupAdapter.OnImageLongClickListener imageLongClickListener;
+    private static final List<ImageView> tickIcons = new ArrayList<>();
 
     public ImageAdapter(Context context, List<ImageItem> images,
                         DateGroupAdapter.OnImageClickListener imageClickListener,
@@ -52,10 +57,12 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
 
     public class ImageViewHolder extends RecyclerView.ViewHolder {
         private final ImageView imageView;
-
+        private final ImageView tickIcon;
         public ImageViewHolder(@NonNull View itemView) {
             super(itemView);
             imageView = itemView.findViewById(R.id.image_view);
+            tickIcon = itemView.findViewById(R.id.tick_icon);
+            tickIcons.add(tickIcon);
 
             // Set onClickListener to handle image clicks
             itemView.setOnClickListener(view -> {
@@ -87,5 +94,9 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                     .override(Target.SIZE_ORIGINAL) // Resize image if necessary
                     .into(imageView);
         }
+    }
+
+    public void onLongImageClick(int index){
+        tickIcons.get(index).setVisibility(View.VISIBLE);
     }
 }
