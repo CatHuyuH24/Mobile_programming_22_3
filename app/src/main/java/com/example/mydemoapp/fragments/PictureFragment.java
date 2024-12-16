@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,6 +22,7 @@ import com.example.mydemoapp.models.DateGroup;
 import com.example.mydemoapp.models.ImageItem;
 import com.example.mydemoapp.utilities.ImageFetcher;
 import com.example.mydemoapp.utilities.ImageGrouping;
+import com.example.mydemoapp.utilities.ImageDeletion;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,10 +32,11 @@ public class PictureFragment extends Fragment {
     private FragmentPictureBinding binding;
     private List<ImageItem> imageList; // Create imageList
     private boolean isSelectionMode = false;
-    private List<String> selectedImagePaths = new ArrayList<>();
+    private final List<String> selectedImagePaths = new ArrayList<>();
     private DateGroupAdapter dateGroupAdapter;
 
     private TextView selectedImageNumber;
+    private Button deleteBtn;
 
     @Nullable
     @Override
@@ -45,6 +48,8 @@ public class PictureFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         selectedImageNumber = binding.selectedImagesNumber;
+        deleteBtn = binding.btnDeleteImage;
+
         // Initialize empty list for images
         imageList = new ArrayList<>();
 
@@ -80,6 +85,10 @@ public class PictureFragment extends Fragment {
                 requireActivity().runOnUiThread(() ->
                         Toast.makeText(getContext(), "Error fetching images: " + e.getMessage(), Toast.LENGTH_SHORT).show());
             }
+        });
+
+        deleteBtn.setOnClickListener(view -> {
+            Toast.makeText(getContext(), "Delete button clicked", Toast.LENGTH_SHORT).show();
         });
 
         return binding.getRoot();
@@ -135,6 +144,7 @@ public class PictureFragment extends Fragment {
         if(!isSelectionMode){
             isSelectionMode = true;
             selectedImageNumber.setVisibility(View.VISIBLE);
+            deleteBtn.setVisibility(View.VISIBLE);
         }
 
         toggleSelectionAndNotify(imageIndex);
@@ -155,6 +165,7 @@ public class PictureFragment extends Fragment {
         if(selectedImagePaths.isEmpty()){
             isSelectionMode = false;
             selectedImageNumber.setVisibility(View.INVISIBLE);
+            deleteBtn.setVisibility(View.INVISIBLE);
         }
     }
 }

@@ -54,5 +54,6 @@
     <string name="delete_btn_content">Delete</string>
     <string name="tick_content">tick</string>
     <string name="image_thumbnail_content">image_thumbnail</string>
+    <string name="delete_images_btn">DELETE</string>
 
 </resources>

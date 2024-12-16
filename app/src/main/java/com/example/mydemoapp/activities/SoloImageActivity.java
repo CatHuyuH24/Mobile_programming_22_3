@@ -26,22 +26,26 @@ import android.view.MotionEvent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.target.Target;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
+
 import com.example.mydemoapp.R;
 import com.example.mydemoapp.models.Album;
 import com.example.mydemoapp.models.ImageItem;
 import com.example.mydemoapp.utilities.AlbumManager;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.example.mydemoapp.utilities.ImageDeletion;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+
 
 
 public class SoloImageActivity extends AppCompatActivity {
@@ -107,7 +111,7 @@ public class SoloImageActivity extends AppCompatActivity {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                             Uri imageUri = Uri.parse(imagePaths.get(currentIndex));
                             try {
-                                deleteImage(imageUri, REQUEST_CODE_DELETE_IMAGE);
+                                ImageDeletion.deleteImage(new ArrayList<>(List.of(imageUri)), REQUEST_CODE_DELETE_IMAGE, this);
                             } catch (RecoverableSecurityException e) {
                                 // can't delete directly with contentResolver, handle RecoverableSecurityException
                                 Log.e("RecoverableSecurityException deleting an image", e.getMessage());
@@ -305,7 +309,7 @@ public class SoloImageActivity extends AppCompatActivity {
                     .setPositiveButton("OK", (dialog, which) ->{
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                             try {
-                                deleteImage(_croppedImageUri, REQUEST_CODE_DELETE_CROPPED_IMAGE);
+                                ImageDeletion.deleteImage(new ArrayList<>(List.of(_croppedImageUri)), REQUEST_CODE_DELETE_CROPPED_IMAGE,this);
                             }
                             catch (RecoverableSecurityException e) {
                                 // can't delete directly with contentResolver, handle RecoverableSecurityException
@@ -337,44 +341,7 @@ public class SoloImageActivity extends AppCompatActivity {
                     .show();
         }
 
-        /**
-         * Deletes the image using the ContentResolver.
-         *
-         * @param imageUri The Uri of the image.
-         * @param requestCode The request code for the activity, either REQUEST_CODE_DELETE_IMAGE or REQUEST_CODE_DELETE_CROPPED_IMAGE.
-         * @return true if the image was deleted successfully, false otherwise.
-         */
-        @RequiresApi(api = Build.VERSION_CODES.Q)
-        private boolean deleteImage(Uri imageUri, int requestCode) throws IntentSender.SendIntentException {
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    // Create the request and also handling deletion, read the docs of MediaStore.createDeleteRequest
-                    PendingIntent intent = MediaStore.createDeleteRequest(getContentResolver(), new ArrayList<>(List.of(imageUri)));
-                    startIntentSenderForResult(intent.getIntentSender(), requestCode, null, 0, 0, 0);
-                    return true;
-                }
 
-                // Handle the old way of deleting the image
-                // Check if the URI is a content URI or file URI
-                if ("content".equals(imageUri.getScheme())) {
-                    // Use ContentResolver to delete the content
-                    int rowsDeleted = getContentResolver().delete(imageUri, null, null);
-                    return rowsDeleted > 0;
-                }
-                if ("file".equals(imageUri.getScheme())) {
-                    // Directly delete the file
-                    File file = new File(imageUri.getPath());
-                    return file.exists() && file.delete();
-                }
-            } catch(RecoverableSecurityException e){
-                Log.e("SoloImageActivity RecoverableSecurityException", "Error deleting image with image URI, an exception occurred: ", e);
-                throw e;
-            } catch (Exception e) {
-                Log.e("SoloImageActivity", "Error deleting image with image URI, an exception occurred: ", e);
-                throw e;
-            }
-            return false;
-        }
 
 
     @Override
@@ -402,7 +369,7 @@ public class SoloImageActivity extends AppCompatActivity {
                         //do nothing
                     } else if(Build.VERSION.SDK_INT == Build.VERSION_CODES.Q){
                         if(_croppedImageUri != null){
-                            deleteImage(_croppedImageUri, REQUEST_CODE_DELETE_CROPPED_IMAGE);
+                            ImageDeletion.deleteImage(new ArrayList<>(List.of(_croppedImageUri)), REQUEST_CODE_DELETE_CROPPED_IMAGE,this);
                         }
                     }
                 } else {
@@ -419,7 +386,10 @@ public class SoloImageActivity extends AppCompatActivity {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                         finish();
                     } else if(Build.VERSION.SDK_INT == Build.VERSION_CODES.Q){
-                        if(deleteImage(Uri.parse(imagePaths.get(currentIndex)), REQUEST_CODE_DELETE_IMAGE)){
+                        List<Uri> imageUris =
+                                new ArrayList<>(List.of(Uri.parse(imagePaths.get(currentIndex))));
+
+                        if(ImageDeletion.deleteImage(imageUris, REQUEST_CODE_DELETE_IMAGE,this)){
                             finish();
                         }
                     }
