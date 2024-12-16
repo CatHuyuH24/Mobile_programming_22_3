@@ -34,7 +34,6 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.target.Target;
 import com.example.mydemoapp.R;
-import com.example.mydemoapp.fragments.PictureFragment;
 import com.example.mydemoapp.models.Album;
 import com.example.mydemoapp.models.ImageItem;
 import com.example.mydemoapp.utilities.AlbumManager;
@@ -150,7 +149,7 @@ public class SoloImageActivity extends AppCompatActivity {
                 .load(imagePath)
                 .thumbnail(0.1f) // Load images first with low quality
                 .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC) // Reasonable image cache
-                .override(Target.SIZE_ORIGINAL) // Resize image if necessary
+                .override(Target.SIZE_ORIGINAL)
                 .into(soloImageView);
 
         ImageItem imageItem = processImageItemFromUri(Uri.parse(imagePath));
@@ -257,18 +256,29 @@ public class SoloImageActivity extends AppCompatActivity {
                 //delete the newly cropped image, whether setting image as wallpaper succeeds or not
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     try {
-                        boolean deletedSuccessfully = deleteImage(_croppedImageUri, REQUEST_CODE_DELETE_CROPPED_IMAGE);
-                        if (deletedSuccessfully) {
-                            Log.i("SoloImageActivity", "Cropped image deleted successfully");
-                        }
+                        croppedShowDeletionExplanationAndDelete();
+
                     } catch (RecoverableSecurityException e) {
                         // can't delete directly with contentResolver, handle RecoverableSecurityException
                         Log.e("RecoverableSecurityException", e.getMessage());
                         // Request the user to confirm deletion through the system dialog
                         PendingIntent pendingIntent = e.getUserAction().getActionIntent();
 
-                        // Show your custom explanation and trigger the system dialog
-                        croppedShowDeletionExplanationAndRequestPermission(_croppedImageUri, pendingIntent);
+                        try {
+                            // Show the dialog to the user to confirm deletion
+                            startIntentSenderForResult(
+                                    pendingIntent.getIntentSender(),
+                                    REQUEST_CODE_DELETE_CROPPED_IMAGE,
+                                    null,
+                                    0,
+                                    0,
+                                    0
+                            );
+
+                        } catch (IntentSender.SendIntentException sendIntentException) {
+                            Log.e("Send intent exception", "Failed to send intent for deletion", sendIntentException);
+                        }
+
                     } catch (Exception e) {
                         Log.e("SoloImageActivity", "Error deleting cropped image, an exception other than RecoverableSecurityException: ", e);
                     }
@@ -286,31 +296,44 @@ public class SoloImageActivity extends AppCompatActivity {
 
         /**
          * Shows a dialog explaining why you're requesting permission to delete the image.
-         *
-         * @param croppedImageUri The Uri of the cropped image.
          */
-        private void croppedShowDeletionExplanationAndRequestPermission(Uri croppedImageUri, PendingIntent intent) {
+        private void croppedShowDeletionExplanationAndDelete() {
             // Show a dialog explaining why you're requesting permission to delete the image
             new AlertDialog.Builder(this)
                     .setTitle("Permission Request")
                     .setMessage("We need your permission to \ndelete the TEMPORARY cropped image (auto-created by us) \nto keep your gallery organized.\nPlease allow us to delete it for you.")
-                    .setPositiveButton("OK", (dialog, which) -> {
-                        try {
-                            // Show the dialog to the user to confirm deletion
-                            startIntentSenderForResult(
-                                    intent.getIntentSender(),
-                                    REQUEST_CODE_DELETE_CROPPED_IMAGE,
-                                    null,
-                                    0,
-                                    0,
-                                    0
-                            );
+                    .setPositiveButton("OK", (dialog, which) ->{
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            try {
+                                deleteImage(_croppedImageUri, REQUEST_CODE_DELETE_CROPPED_IMAGE);
+                            }
+                            catch (RecoverableSecurityException e) {
+                                // can't delete directly with contentResolver, handle RecoverableSecurityException
+                                Log.e("RecoverableSecurityException", e.getMessage());
+                                // Request the user to confirm deletion through the system dialog
+                                PendingIntent pendingIntent = e.getUserAction().getActionIntent();
 
-                        } catch (IntentSender.SendIntentException sendIntentException) {
-                            Log.e("Send intent exception", "Failed to send intent for deletion", sendIntentException);
+                                try {
+                                    // Show the dialog to the user to confirm deletion
+                                    startIntentSenderForResult(
+                                            pendingIntent.getIntentSender(),
+                                            REQUEST_CODE_DELETE_CROPPED_IMAGE,
+                                            null,
+                                            0,
+                                            0,
+                                            0
+                                    );
+
+                                } catch (IntentSender.SendIntentException sendIntentException) {
+                                    throw new RuntimeException(sendIntentException);
+                                }
+                            } catch (IntentSender.SendIntentException sendIntentException) {
+                                Log.e("Send intent exception", "Failed to send intent for deletion", sendIntentException);
+                                throw new RuntimeException(sendIntentException);
+                            }
                         }
                     })
-                    .setCancelable(true)
+                    .setCancelable(false)
                     .show();
         }
 
