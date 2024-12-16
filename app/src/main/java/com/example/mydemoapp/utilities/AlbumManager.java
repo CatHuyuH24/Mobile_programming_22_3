@@ -69,23 +69,6 @@ public class AlbumManager {
         saveAlbums(albums);
     }
 
-    public ArrayList<String> getImagePathsFromAlbum(String albumName) {
-        List<Album> albums = loadAlbums();
-        ArrayList<String> imagePaths = new ArrayList<>();
-
-        for (Album album : albums) {
-            if (album.getName().equals(albumName)) {
-                for (ImageItem image : album.getImages()) {
-                    imagePaths.add(image.getImagePath());
-                }
-
-                break;
-            }
-        }
-
-        return imagePaths;
-    }
-
     public void addImageToAlbum(String albumName, String imagePath) {
         List<Album> albums = loadAlbums();
 
