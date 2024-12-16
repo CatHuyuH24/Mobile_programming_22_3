@@ -11,6 +11,7 @@
         android:text="Selected Images: 0"
         android:textSize="24sp"
         android:visibility="invisible"/>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"

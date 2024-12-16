@@ -101,7 +101,7 @@ public class AlbumFragment extends Fragment {
 
         DateGroupAdapter dateGroupAdapter =
                 new DateGroupAdapter(getContext(), dateGroups,
-                        imagePath -> onImageClick(imagePath, albumManager),
+                        imageIndex -> onImageClick(imageIndex, albumManager),
                         imagePathLongClick -> onImageLongClick(imagePathLongClick, albumManager));
 
         recyclerView.setAdapter(dateGroupAdapter);
@@ -240,27 +240,27 @@ public class AlbumFragment extends Fragment {
         super.onDestroyView();
     }
 
-    private void onImageClick(String imagePath, AlbumManager albumManager){
+    private void onImageClick(int imageIndex, AlbumManager albumManager){
         // Find the index of the clicked image
         ArrayList<String> imagePaths = albumManager.getImagePathsFromAlbum(selectedAlbumName);
-        int index = -1;
-        for (int i = 0; i < imagePaths.size(); i++) {
-            if (imagePaths.get(i).equals(imagePath)) {
-                index = i;
-                break;
-            }
-        }
+//        int index = -1;
+//        for (int i = 0; i < imagePaths.size(); i++) {
+//            if (imagePaths.get(i).equals(imagePath)) {
+//                index = i;
+//                break;
+//            }
+//        }
 
-        if (index != -1) {
+        if (imageIndex != -1) {
             // Create an intent to start SoloImageActivity
             Intent intent = new Intent(getActivity(), SoloImageActivity.class);
             intent.putStringArrayListExtra("IMAGE_PATHS", imagePaths);
-            intent.putExtra("CURRENT_IMAGE_INDEX", index);
+            intent.putExtra("CURRENT_IMAGE_INDEX", imageIndex);
             startActivity(intent);
         }
     }
 
-    private void onImageLongClick(String imagePath, AlbumManager albumManager){
+    private void onImageLongClick(int imageIndex, AlbumManager albumManager){
         Toast.makeText(getContext(),"long click in album", Toast.LENGTH_SHORT).show();
     }
 }

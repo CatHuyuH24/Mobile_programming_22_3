@@ -26,7 +26,6 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     private final List<ImageItem> images;
     private final DateGroupAdapter.OnImageClickListener imageClickListener;
     private final DateGroupAdapter.OnImageLongClickListener imageLongClickListener;
-    private static final List<ImageView> tickIcons = new ArrayList<>();
 
     public ImageAdapter(Context context, List<ImageItem> images,
                         DateGroupAdapter.OnImageClickListener imageClickListener,
@@ -62,14 +61,13 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
             super(itemView);
             imageView = itemView.findViewById(R.id.image_view);
             tickIcon = itemView.findViewById(R.id.tick_icon);
-            tickIcons.add(tickIcon);
 
             // Set onClickListener to handle image clicks
             itemView.setOnClickListener(view -> {
                 if (imageClickListener != null) {
                     int position = getBindingAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
-                        imageClickListener.onImageClick(images.get(position).getImagePath());
+                        imageClickListener.onImageClick(position);
                     }
                 }
             });
@@ -78,7 +76,10 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                 if (imageLongClickListener != null) {
                     int position = getBindingAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
-                        imageLongClickListener.onImageLongClickListener(images.get(position).getImagePath());
+                        imageLongClickListener.onImageLongClickListener(position);
+                        ImageItem item = images.get(position);
+                        item.toggleIsSelected();
+                        notifyItemChanged(position);
                         return true;
                     }
                 }
@@ -93,10 +94,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                     .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC) // Reasonable image cache
                     .override(Target.SIZE_ORIGINAL) // Resize image if necessary
                     .into(imageView);
+            tickIcon.setVisibility(imageItem.isSelected()? View.VISIBLE: View.INVISIBLE);
         }
-    }
-
-    public void onLongImageClick(int index){
-        tickIcons.get(index).setVisibility(View.VISIBLE);
     }
 }

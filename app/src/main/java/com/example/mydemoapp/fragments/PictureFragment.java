@@ -1,7 +1,5 @@
 package com.example.mydemoapp.fragments;
 
-import static android.app.Activity.RESULT_OK;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -26,7 +24,6 @@ import com.example.mydemoapp.utilities.ImageGrouping;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class PictureFragment extends Fragment {
     private FragmentPictureBinding binding;
@@ -68,8 +65,8 @@ public class PictureFragment extends Fragment {
                     // Initialize the adapter with a click listener
                     dateGroupAdapter =
                             new DateGroupAdapter(getContext(), dateGroups,
-                                    imagePath -> onImageClick(imagePath),
-                                    imagePathLongClick -> onLongImageClick(imagePathLongClick));
+                                    imageIndex -> onImageClick(imageIndex),
+                                    imageIndexLongClick -> onLongImageClick(imageIndexLongClick));
 
                     // Set the adapter
                     recyclerView.setAdapter(dateGroupAdapter);
@@ -101,33 +98,34 @@ public class PictureFragment extends Fragment {
         binding = null;
     }
 
-    private void onImageClick(String imagePath) {
+    private void onImageClick(int imageIndex) {
         // Find the index of the clicked image
-        int index = -1;
-        for (int i = 0; i < imageList.size(); i++) {
-            if (imageList.get(i).getImagePath().equals(imagePath)) {
-                index = i;
-                break;
-            }
-        }
+//        int index = -1;
+//        for (int i = 0; i < imageList.size(); i++) {
+//            if (imageList.get(i).getImagePath().equals(imagePath)) {
+//                index = i;
+//                break;
+//            }
+//        }
 
-        if (index != -1) {
+        if (imageIndex != -1) {
             // Create an intent to start SoloImageActivity
             Intent intent = new Intent(getActivity(), SoloImageActivity.class);
             intent.putStringArrayListExtra("IMAGE_PATHS", getImagePathsFromList(imageList));
-            intent.putExtra("CURRENT_IMAGE_INDEX", index);
+            intent.putExtra("CURRENT_IMAGE_INDEX", imageIndex);
             startActivity(intent);
         }
     }
 
-    private void onLongImageClick(String imagePath){
-        int index = -1;
-        for (int i = 0; i < imageList.size(); i++) {
-            if (imageList.get(i).getImagePath().equals(imagePath)) {
-                index = i;
-                break;
-            }
-        }
-        dateGroupAdapter.onLongImageClick(index);
+    private void onLongImageClick(int imageIndex){
+//        int index = -1;
+//        for (int i = 0; i < imageList.size(); i++) {
+//            if (imageList.get(i).getImagePath().equals(imagePath)) {
+//                index = i;
+//                break;
+//            }
+//        }
+        Toast.makeText(getContext(), "long clicked picture frag "+imageIndex, Toast.LENGTH_SHORT).show();
+        dateGroupAdapter.onLongImageClick(imageIndex);
     }
 }
