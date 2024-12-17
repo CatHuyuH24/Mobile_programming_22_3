@@ -18,4 +18,6 @@ public class DateGroup {
     public List<ImageItem> getImages() {
         return images;
     }
+
+    public void removeImageAt(int index){images.remove(index);}
 }

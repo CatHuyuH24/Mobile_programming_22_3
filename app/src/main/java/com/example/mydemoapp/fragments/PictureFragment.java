@@ -88,7 +88,7 @@ public class PictureFragment extends Fragment {
                     dateGroupAdapter =
                             new DateGroupAdapter(getContext(), dateGroups,
                                     imageIndex -> onImageClick(imageIndex),
-                                    imageIndexLongClick -> onLongImageClick(imageIndexLongClick));
+                                    (parentPosition, imagePath) -> onLongImageClick(parentPosition, imagePath));
 
                     // Set the adapter
                     recyclerView.setAdapter(dateGroupAdapter);
@@ -112,33 +112,35 @@ public class PictureFragment extends Fragment {
         deleteImageLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartIntentSenderForResult(),
                 result -> {
-                    if(result.getResultCode() != RESULT_OK){
-                        return;//do nothing
-                    }
+                    if(result.getResultCode() == RESULT_OK){
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            try {
+                                //re-delete the image
+                                ImageDeletion.deleteImage(_toBeDeletedUri,REQUEST_CODE_DELETE_IMAGES,requireActivity());
 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        try {
-                            ImageDeletion.deleteImage(_toBeDeletedUri,REQUEST_CODE_DELETE_IMAGES,requireActivity());
+                                int removedIndex = selectedImageIndices.get(selectedImageIndices.size()-1);
+                                imageList.remove(removedIndex);
+                                selectedImageIndices.remove(selectedImageIndices.size()-1);
+                                dateGroupAdapter.notifyItemRemoved(removedIndex);
+//                                dateGroupAdapter.removeImageOnDisplay(removedIndex);
 
-                            int removedIndex = selectedImageIndices.get(selectedImageIndices.size()-1);
-                            imageList.remove(removedIndex);
-                            selectedImageIndices.remove(selectedImageIndices.size()-1);
-                            dateGroupAdapter.notifyItemRemoved(removedIndex);
-                            dateGroupAdapter.removeImageOnDisplay(removedIndex);
+                                updateImagesNumberDisplay();
 
-                            updateImagesNumberDisplay();
-
-                            if(!selectedImageIndices.isEmpty()){
-                                keepDeletingNextSelectedImage();
-                            } else {
-                                disableSelectionMode();
+                            } catch (IntentSender.SendIntentException e) {
+                                throw new RuntimeException(e);
                             }
-                        } catch (IntentSender.SendIntentException e) {
-                            throw new RuntimeException(e);
+                        } else {
+                            Toast.makeText(getContext(), "Can't delete the image(s)", Toast.LENGTH_SHORT).show();
                         }
-                    } else {
-                        Toast.makeText(getContext(), "Can't delete the image(s)", Toast.LENGTH_SHORT).show();
                     }
+
+                    if(!selectedImageIndices.isEmpty()){
+                        keepDeletingNextSelectedImage();
+                    } else {
+                        disableSelectionMode();
+                    }
+
+
                 }
         );
 
@@ -170,7 +172,7 @@ public class PictureFragment extends Fragment {
 //        }
 
         if(isSelectionMode){
-            toggleSelection(imageIndex);
+//            toggleSelection(0, imageIndex);//need fixing, debugging the long-click...
             updateImagesNumberDisplay();
         } else {
             if (imageIndex != -1) {
@@ -185,33 +187,44 @@ public class PictureFragment extends Fragment {
 
     }
 
-    private void onLongImageClick(int imageIndex){
-//        int index = -1;
-//        for (int i = 0; i < imageList.size(); i++) {
-//            if (imageList.get(i).getImagePath().equals(imagePath)) {
-//                index = i;
-//                break;
-//            }
-//        }
+    private void onLongImageClick(int parentPosition, String imagePath){
+        int index = -1;
+        for (int i = 0; i < imageList.size(); i++) {
+            if (imageList.get(i).getImagePath().equals(imagePath)) {
+                index = i;
+                break;
+            }
+        }
+//        Toast.makeText(requireContext(),"PictureFragment imagePath: " + imagePath,Toast.LENGTH_SHORT).show();
+        Toast.makeText(requireContext(),"PictureFragment direct imgPos: "+index,Toast.LENGTH_SHORT).show();
+        Toast.makeText(requireContext(),"PictureFragment parentPosition: "+parentPosition,Toast.LENGTH_SHORT).show();
+
         if(!isSelectionMode){
             isSelectionMode = true;
             selectedImageNumber.setVisibility(View.VISIBLE);
             deleteBtn.setVisibility(View.VISIBLE);
         }
 
-        toggleSelection(imageIndex);
+        toggleSelection(parentPosition, index);
         updateImagesNumberDisplay();
     }
 
-    private void toggleSelection(int imageIndex){
-        if(selectedImageIndices.contains(imageIndex)){
-            selectedImageIndices.remove((Integer) imageIndex);
+    private void toggleSelection(int parentPosition, int index){
+        if(selectedImageIndices.contains(index)){
+            selectedImageIndices.remove((Integer) index);
+            Toast.makeText(requireContext(),"removing "+ index,Toast.LENGTH_SHORT).show();
         } else {
-            selectedImageIndices.add(imageIndex);
+            selectedImageIndices.add(index);
         }
-        dateGroupAdapter.onLongImageClick(imageIndex);
+
+        Log.i("PictureFragment", "selectedImageIndices:");
+        for(Integer ind:selectedImageIndices){
+            Log.i("PictureFragment", "indexSelected: "+ind+"the path: "+imageList.get(ind).getImagePath());
+        }
+        dateGroupAdapter.onLongImageClick(index);
 
         if(selectedImageIndices.isEmpty()){
+            Log.i("PictureFragment","the selected images indices is empty!");
             disableSelectionMode();
         }
     }
@@ -232,7 +245,7 @@ public class PictureFragment extends Fragment {
             try {
                 //stack-like to ensure loop
                 _toBeDeletedUri = Uri.parse(imageList.get(selectedImageIndices.get(selectedImageIndices.size()-1)).getImagePath());
-                ImageDeletion.deleteImage(_toBeDeletedUri,REQUEST_CODE_DELETE_IMAGES,requireActivity());
+                ImageDeletion.deleteImage(_toBeDeletedUri, REQUEST_CODE_DELETE_IMAGES, requireActivity());
             } catch (RecoverableSecurityException e) {
                 // Can't delete directly with contentResolver, handle RecoverableSecurityException
                 // Request the user to confirm deletion through the system dialog

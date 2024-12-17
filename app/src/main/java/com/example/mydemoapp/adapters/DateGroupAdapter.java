@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -63,8 +64,9 @@ public class DateGroupAdapter extends RecyclerView.Adapter<DateGroupAdapter.Date
 
             int numberOfCol = 4;
             recyclerView.setLayoutManager(new GridLayoutManager(context, numberOfCol));
-            imageAdapter = new ImageAdapter(context, dateGroup.getImages(), imageClickListener, imageLongClickListener); // Pass listener to adapter
+            imageAdapter = new ImageAdapter(context, dateGroup.getImages(), imageClickListener, imageLongClickListener, getBindingAdapterPosition()); // Pass listener to adapter
             recyclerView.setAdapter(imageAdapter);
+
         }
     }
 
@@ -73,12 +75,32 @@ public class DateGroupAdapter extends RecyclerView.Adapter<DateGroupAdapter.Date
     }
 
     public interface OnImageLongClickListener{
-        void onImageLongClickListener(int imageIndex);
+        void onImageLongClickListener(int parentDateGroupIndex, String imagePath);
     }
 
     public void onLongImageClick(int index){
-        imageAdapter.onLongImageClick(index);
+//        imageAdapter.onLongImageClick(index);
+        Toast.makeText(context,"DateGroupAdapter index passed in: "+index,Toast.LENGTH_SHORT).show();
     }
+
+    public void removeImage(int dateGroupPosition, int imagePosition) {
+        if (dateGroupPosition >= 0 && dateGroupPosition < dateGroups.size()) {
+            DateGroup dateGroup = dateGroups.get(dateGroupPosition);
+
+            if (imagePosition >= 0 && imagePosition < dateGroup.getImages().size()) {
+                dateGroup.removeImageAt(imagePosition);
+
+                // If the DateGroup has no images left, remove the entire group
+                if (dateGroup.getImages().isEmpty()) {
+                    dateGroups.remove(dateGroupPosition);
+                }
+
+                // Notify the ImageAdapter of the change
+                notifyItemChanged(dateGroupPosition);
+            }
+        }
+    }
+
 
     public void removeImageOnDisplay(int imageIndexWithinWholeList){
         imageAdapter.removeImageOnDisplay(imageIndexWithinWholeList);

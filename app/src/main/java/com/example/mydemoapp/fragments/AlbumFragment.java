@@ -102,7 +102,7 @@ public class AlbumFragment extends Fragment {
         DateGroupAdapter dateGroupAdapter =
                 new DateGroupAdapter(getContext(), dateGroups,
                         imageIndex -> onImageClick(imageIndex, albumManager),
-                        imagePathLongClick -> onImageLongClick(imagePathLongClick, albumManager));
+                        (parentPosition, imagePath) -> onImageLongClick(parentPosition, imagePath, albumManager));
 
         recyclerView.setAdapter(dateGroupAdapter);
     }
@@ -260,7 +260,7 @@ public class AlbumFragment extends Fragment {
         }
     }
 
-    private void onImageLongClick(int imageIndex, AlbumManager albumManager){
+    private void onImageLongClick(int parentPosition, String imagePath, AlbumManager albumManager){
         Toast.makeText(getContext(),"long click in album", Toast.LENGTH_SHORT).show();
     }
 }

@@ -26,14 +26,17 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     private final List<ImageItem> images;
     private final DateGroupAdapter.OnImageClickListener imageClickListener;
     private final DateGroupAdapter.OnImageLongClickListener imageLongClickListener;
+    private int parentPosition;
 
     public ImageAdapter(Context context, List<ImageItem> images,
                         DateGroupAdapter.OnImageClickListener imageClickListener,
-                        DateGroupAdapter.OnImageLongClickListener imageLongClickListener) {
+                        DateGroupAdapter.OnImageLongClickListener imageLongClickListener,
+                        int parentPosition) {
         this.context = context;
         this.images = images;
         this.imageClickListener = imageClickListener; // Accept listener
         this.imageLongClickListener = imageLongClickListener;
+        this.parentPosition = parentPosition;
     }
 
     @NonNull
@@ -57,6 +60,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     public class ImageViewHolder extends RecyclerView.ViewHolder {
         private final ImageView imageView;
         private final ImageView tickIcon;
+        private ImageItem imageItem;
         public ImageViewHolder(@NonNull View itemView) {
             super(itemView);
             imageView = itemView.findViewById(R.id.image_view);
@@ -74,17 +78,16 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
 
             itemView.setOnLongClickListener(view -> {
                 if (imageLongClickListener != null) {
-                    int position = getBindingAdapterPosition();
-                    if (position != RecyclerView.NO_POSITION) {
-                        imageLongClickListener.onImageLongClickListener(position);
-                        return true;
-                    }
+                    imageItem.toggleIsSelected();
+                    notifyItemChanged(getBindingAdapterPosition());
+                    imageLongClickListener.onImageLongClickListener(parentPosition, imageItem.getImagePath());
                 }
                 return false;
             });
         }
 
         public void bind(ImageItem imageItem) {
+            this.imageItem = imageItem;
             Glide.with(context)
                     .load(imageItem.getImagePath())
                     .thumbnail(0.1f) // Load images first with low quality
@@ -95,11 +98,12 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         }
     }
 
-    public void onLongImageClick(int index){
-        ImageItem item = images.get(index);
-        item.toggleIsSelected();
-        notifyItemChanged(index);
-    }
+//    public void onLongImageClick(int index){
+//        Toast.makeText(context,"imageadapter index: "+index,Toast.LENGTH_SHORT).show();
+//        ImageItem item = images.get(index);
+//        item.toggleIsSelected();
+//        notifyItemChanged(index);
+//    }
 
     public void removeImageOnDisplay(int index){
         images.remove(index);
