@@ -1,13 +1,11 @@
 package com.example.mydemoapp.adapters;
 
-import static java.security.AccessController.getContext;
 
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,7 +16,6 @@ import com.bumptech.glide.request.target.Target;
 import com.example.mydemoapp.R;
 import com.example.mydemoapp.models.ImageItem;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHolder> {
@@ -26,7 +23,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
     private final List<ImageItem> images;
     private final DateGroupAdapter.OnImageClickListener imageClickListener;
     private final DateGroupAdapter.OnImageLongClickListener imageLongClickListener;
-    private int parentPosition;
+    private int groupIndex;
 
     public ImageAdapter(Context context, List<ImageItem> images,
                         DateGroupAdapter.OnImageClickListener imageClickListener,
@@ -36,7 +33,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         this.images = images;
         this.imageClickListener = imageClickListener; // Accept listener
         this.imageLongClickListener = imageLongClickListener;
-        this.parentPosition = parentPosition;
+        this.groupIndex = parentPosition;
     }
 
     @NonNull
@@ -61,6 +58,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         private final ImageView imageView;
         private final ImageView tickIcon;
         private ImageItem imageItem;
+
         public ImageViewHolder(@NonNull View itemView) {
             super(itemView);
             imageView = itemView.findViewById(R.id.image_view);
@@ -71,7 +69,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                 if (imageClickListener != null) {
                     int position = getBindingAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
-                        imageClickListener.onImageClick(position);
+                        imageClickListener.onImageClick(groupIndex, imageItem.getImagePath(), getBindingAdapterPosition());
                     }
                 }
             });
@@ -80,7 +78,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
                 if (imageLongClickListener != null) {
                     imageItem.toggleIsSelected();
                     notifyItemChanged(getBindingAdapterPosition());
-                    imageLongClickListener.onImageLongClickListener(parentPosition, imageItem.getImagePath());
+                    imageLongClickListener.onImageLongClickListener(imageItem.getImagePath());
                 }
                 return false;
             });
@@ -98,15 +96,8 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
         }
     }
 
-//    public void onLongImageClick(int index){
-//        Toast.makeText(context,"imageadapter index: "+index,Toast.LENGTH_SHORT).show();
-//        ImageItem item = images.get(index);
-//        item.toggleIsSelected();
-//        notifyItemChanged(index);
-//    }
-
-    public void removeImageOnDisplay(int index){
-        images.remove(index);
-        notifyItemRemoved(index);
+    public void onImageClick(int index){
+        images.get(index).toggleIsSelected();
+        notifyItemChanged(index);
     }
 }

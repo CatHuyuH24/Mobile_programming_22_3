@@ -101,8 +101,8 @@ public class AlbumFragment extends Fragment {
 
         DateGroupAdapter dateGroupAdapter =
                 new DateGroupAdapter(getContext(), dateGroups,
-                        imageIndex -> onImageClick(imageIndex, albumManager),
-                        (parentPosition, imagePath) -> onImageLongClick(parentPosition, imagePath, albumManager));
+                        (groupIndex, imagePath, adapterPosition) -> onImageClick(imagePath, albumManager),
+                        imagePath -> onImageLongClick(imagePath, albumManager));
 
         recyclerView.setAdapter(dateGroupAdapter);
     }
@@ -240,27 +240,27 @@ public class AlbumFragment extends Fragment {
         super.onDestroyView();
     }
 
-    private void onImageClick(int imageIndex, AlbumManager albumManager){
+    private void onImageClick(String imagePath, AlbumManager albumManager){
         // Find the index of the clicked image
         ArrayList<String> imagePaths = albumManager.getImagePathsFromAlbum(selectedAlbumName);
-//        int index = -1;
-//        for (int i = 0; i < imagePaths.size(); i++) {
-//            if (imagePaths.get(i).equals(imagePath)) {
-//                index = i;
-//                break;
-//            }
-//        }
+        int index = -1;
+        for (int i = 0; i < imagePaths.size(); i++) {
+            if (imagePaths.get(i).equals(imagePath)) {
+                index = i;
+                break;
+            }
+        }
 
-        if (imageIndex != -1) {
+        if (index != -1) {
             // Create an intent to start SoloImageActivity
             Intent intent = new Intent(getActivity(), SoloImageActivity.class);
             intent.putStringArrayListExtra("IMAGE_PATHS", imagePaths);
-            intent.putExtra("CURRENT_IMAGE_INDEX", imageIndex);
+            intent.putExtra("CURRENT_IMAGE_INDEX", index);
             startActivity(intent);
         }
     }
 
-    private void onImageLongClick(int parentPosition, String imagePath, AlbumManager albumManager){
-        Toast.makeText(getContext(),"long click in album", Toast.LENGTH_SHORT).show();
+    private void onImageLongClick(String imagePath, AlbumManager albumManager){
+        // do nothing
     }
 }

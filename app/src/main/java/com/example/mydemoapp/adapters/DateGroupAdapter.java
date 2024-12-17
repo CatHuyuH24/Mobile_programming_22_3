@@ -5,7 +5,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -14,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.mydemoapp.models.DateGroup;
 import com.example.mydemoapp.R;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class DateGroupAdapter extends RecyclerView.Adapter<DateGroupAdapter.DateGroupViewHolder> {
@@ -21,7 +21,7 @@ public class DateGroupAdapter extends RecyclerView.Adapter<DateGroupAdapter.Date
     private final Context context;
     private final OnImageClickListener imageClickListener;
     private final OnImageLongClickListener imageLongClickListener;
-    private ImageAdapter imageAdapter;
+    private final List<ImageAdapter> imageAdapters = new ArrayList<>();
     public DateGroupAdapter(Context context, List<DateGroup> dateGroups,
                             OnImageClickListener imageClickListener,
                             OnImageLongClickListener imageLongClickListener) {
@@ -64,24 +64,21 @@ public class DateGroupAdapter extends RecyclerView.Adapter<DateGroupAdapter.Date
 
             int numberOfCol = 4;
             recyclerView.setLayoutManager(new GridLayoutManager(context, numberOfCol));
-            imageAdapter = new ImageAdapter(context, dateGroup.getImages(), imageClickListener, imageLongClickListener, getBindingAdapterPosition()); // Pass listener to adapter
+            ImageAdapter imageAdapter = new ImageAdapter(context, dateGroup.getImages(), imageClickListener, imageLongClickListener, getBindingAdapterPosition()); // Pass listener to adapter
+            imageAdapters.add(imageAdapter);
             recyclerView.setAdapter(imageAdapter);
 
         }
     }
 
     public interface OnImageClickListener {
-        void onImageClick(int imageIndex);
+        void onImageClick(int groupIndex, String imagePath, int adapterPosition);
     }
 
     public interface OnImageLongClickListener{
-        void onImageLongClickListener(int parentDateGroupIndex, String imagePath);
+        void onImageLongClickListener(String imagePath);
     }
 
-    public void onLongImageClick(int index){
-//        imageAdapter.onLongImageClick(index);
-        Toast.makeText(context,"DateGroupAdapter index passed in: "+index,Toast.LENGTH_SHORT).show();
-    }
 
     public void removeImage(int dateGroupPosition, int imagePosition) {
         if (dateGroupPosition >= 0 && dateGroupPosition < dateGroups.size()) {
@@ -101,11 +98,7 @@ public class DateGroupAdapter extends RecyclerView.Adapter<DateGroupAdapter.Date
         }
     }
 
-
-    public void removeImageOnDisplay(int imageIndexWithinWholeList){
-        imageAdapter.removeImageOnDisplay(imageIndexWithinWholeList);
-
-        dateGroups.removeIf(dateGroup -> dateGroup.getImages().isEmpty());
-        notifyItemRemoved(imageIndexWithinWholeList);
+    public void onImageClick(int groupIndex, int index){
+        imageAdapters.get(groupIndex).onImageClick(index);
     }
 }

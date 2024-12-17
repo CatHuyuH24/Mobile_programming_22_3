@@ -87,8 +87,8 @@ public class PictureFragment extends Fragment {
                     // Initialize the adapter with a click listener
                     dateGroupAdapter =
                             new DateGroupAdapter(getContext(), dateGroups,
-                                    imageIndex -> onImageClick(imageIndex),
-                                    (parentPosition, imagePath) -> onLongImageClick(parentPosition, imagePath));
+                                    (groupIndex, imagePath, adapterPosition) -> onImageClick(groupIndex, imagePath, adapterPosition),
+                                    imagePath -> onLongImageClick(imagePath));
 
                     // Set the adapter
                     recyclerView.setAdapter(dateGroupAdapter);
@@ -102,12 +102,10 @@ public class PictureFragment extends Fragment {
             }
         });
 
-        deleteBtn.setOnClickListener(view -> {
-
-            // smallest to largest, since deleting from the end (stack-like)
-            Collections.sort(selectedImageIndices);
-            keepDeletingNextSelectedImage();
-        });
+        deleteBtn.setOnClickListener(view ->{
+                Collections.reverse(selectedImageIndices);
+                keepDeletingNextSelectedImage();
+                });
 
         deleteImageLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartIntentSenderForResult(),
@@ -123,7 +121,6 @@ public class PictureFragment extends Fragment {
                                 selectedImageIndices.remove(selectedImageIndices.size()-1);
                                 dateGroupAdapter.notifyItemRemoved(removedIndex);
 //                                dateGroupAdapter.removeImageOnDisplay(removedIndex);
-
                                 updateImagesNumberDisplay();
 
                             } catch (IntentSender.SendIntentException e) {
@@ -132,12 +129,18 @@ public class PictureFragment extends Fragment {
                         } else {
                             Toast.makeText(getContext(), "Can't delete the image(s)", Toast.LENGTH_SHORT).show();
                         }
+                    }else{
+                        selectedImageIndices.clear();
+                        disableSelectionMode();
+                        refreshLayout();
+                        return;
                     }
 
                     if(!selectedImageIndices.isEmpty()){
                         keepDeletingNextSelectedImage();
                     } else {
                         disableSelectionMode();
+                        refreshLayout();
                     }
 
 
@@ -145,6 +148,20 @@ public class PictureFragment extends Fragment {
         );
 
         return binding.getRoot();
+    }
+
+    private void refreshLayout() {
+        getParentFragmentManager()
+                .beginTransaction()
+                .detach(PictureFragment.this) // Detach Fragment
+                .commit();    // Apply changes
+
+        dateGroupAdapter.notifyDataSetChanged();
+
+        getParentFragmentManager()
+                .beginTransaction()
+                .attach(PictureFragment.this)
+                .commit();
     }
 
 
@@ -162,32 +179,7 @@ public class PictureFragment extends Fragment {
         binding = null;
     }
 
-    private void onImageClick(int imageIndex) {
-//        int index = -1;
-//        for (int i = 0; i < imageList.size(); i++) {
-//            if (imageList.get(i).getImagePath().equals(imagePath)) {
-//                index = i;
-//                break;
-//            }
-//        }
-
-        if(isSelectionMode){
-//            toggleSelection(0, imageIndex);//need fixing, debugging the long-click...
-            updateImagesNumberDisplay();
-        } else {
-            if (imageIndex != -1) {
-                // Create an intent to start SoloImageActivity
-                Intent intent = new Intent(getActivity(), SoloImageActivity.class);
-                intent.putStringArrayListExtra("IMAGE_PATHS", getImagePathsFromList(imageList));
-                intent.putExtra("CURRENT_IMAGE_INDEX", imageIndex);
-                startActivity(intent);
-            }
-        }
-
-
-    }
-
-    private void onLongImageClick(int parentPosition, String imagePath){
+    private void onImageClick(int groupIndex, String imagePath, int adapterPosition) {
         int index = -1;
         for (int i = 0; i < imageList.size(); i++) {
             if (imageList.get(i).getImagePath().equals(imagePath)) {
@@ -195,9 +187,34 @@ public class PictureFragment extends Fragment {
                 break;
             }
         }
-//        Toast.makeText(requireContext(),"PictureFragment imagePath: " + imagePath,Toast.LENGTH_SHORT).show();
-        Toast.makeText(requireContext(),"PictureFragment direct imgPos: "+index,Toast.LENGTH_SHORT).show();
-        Toast.makeText(requireContext(),"PictureFragment parentPosition: "+parentPosition,Toast.LENGTH_SHORT).show();
+
+
+
+        if(isSelectionMode){
+            toggleSelection(index);//need fixing, debugging the long-click...
+            dateGroupAdapter.onImageClick(groupIndex, adapterPosition);
+            updateImagesNumberDisplay();
+        } else {
+            if (index != -1) {
+                // Create an intent to start SoloImageActivity
+                Intent intent = new Intent(getActivity(), SoloImageActivity.class);
+                intent.putStringArrayListExtra("IMAGE_PATHS", getImagePathsFromList(imageList));
+                intent.putExtra("CURRENT_IMAGE_INDEX", index);
+                startActivity(intent);
+            }
+        }
+
+
+    }
+
+    private void onLongImageClick(String imagePath){
+        int index = -1;
+        for (int i = 0; i < imageList.size(); i++) {
+            if (imageList.get(i).getImagePath().equals(imagePath)) {
+                index = i;
+                break;
+            }
+        }
 
         if(!isSelectionMode){
             isSelectionMode = true;
@@ -205,26 +222,18 @@ public class PictureFragment extends Fragment {
             deleteBtn.setVisibility(View.VISIBLE);
         }
 
-        toggleSelection(parentPosition, index);
+        toggleSelection(index);
         updateImagesNumberDisplay();
     }
 
-    private void toggleSelection(int parentPosition, int index){
+    private void toggleSelection(int index){
         if(selectedImageIndices.contains(index)){
             selectedImageIndices.remove((Integer) index);
-            Toast.makeText(requireContext(),"removing "+ index,Toast.LENGTH_SHORT).show();
         } else {
             selectedImageIndices.add(index);
         }
 
-        Log.i("PictureFragment", "selectedImageIndices:");
-        for(Integer ind:selectedImageIndices){
-            Log.i("PictureFragment", "indexSelected: "+ind+"the path: "+imageList.get(ind).getImagePath());
-        }
-        dateGroupAdapter.onLongImageClick(index);
-
         if(selectedImageIndices.isEmpty()){
-            Log.i("PictureFragment","the selected images indices is empty!");
             disableSelectionMode();
         }
     }
