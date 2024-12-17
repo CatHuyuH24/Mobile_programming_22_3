@@ -1,9 +1,15 @@
 package com.example.mydemoapp.activities;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,6 +22,10 @@ import com.example.mydemoapp.fragments.AlbumFragment;
 import com.example.mydemoapp.fragments.PictureFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Random;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final int PICTURES_ID = R.id.pictures;
@@ -23,6 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_READ_EXTERNAL_STORAGE = 1;
     private static final int REQUEST_CODE_READ_MEDIA_IMAGES = 2;
     private static final int REQUEST_CODE_WRITE_EXTERNAL_STORAGE = 3;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

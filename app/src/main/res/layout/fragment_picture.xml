@@ -29,10 +29,33 @@
             android:contentDescription="Menu icon button"
             />
     </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"-
+        android:gravity="center_vertical"
+        android:layout_marginBottom="8dp">
+        <Button
+            android:id="@+id/btn_random_image"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Random Image"
+            android:layout_marginEnd="8dp"/>
+        <Spinner
+            android:id="@+id/spinner_filter"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"/>
+    </LinearLayout>
+
+    <!-- RecyclerView for displaying images -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:scrollbars="vertical"/>
 
 </LinearLayout>

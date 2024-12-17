@@ -49,6 +49,30 @@ android:padding="3dp">
         android:background="@drawable/border_form"
         android:gravity="center">
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btn_share_image"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/button_style"
+                android:textSize="16sp"
+                android:text="Share"
+                android:textColor="@android:color/white"
+                android:layout_weight="1"/>
+        </LinearLayout>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="8dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btn_solo_set_background"
             android:layout_width="30dp"
