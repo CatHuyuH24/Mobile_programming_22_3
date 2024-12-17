@@ -3,10 +3,12 @@ package com.example.mydemoapp.models;
 public class ImageItem {
     private final String imagePath;
     private final long dateTaken;
+    private boolean isSelected;
 
     public ImageItem(String imagePath, long dateTaken) {
         this.imagePath = imagePath;
         this.dateTaken = dateTaken;
+        this.isSelected = false;
     }
 
     public String getImagePath() {
@@ -37,5 +39,13 @@ public class ImageItem {
 
     public int getImageId() {
         return 0;
+    }
+
+    public void toggleIsSelected(){
+        isSelected = !isSelected;
+    }
+
+    public boolean isSelected() {
+        return isSelected;
     }
 }

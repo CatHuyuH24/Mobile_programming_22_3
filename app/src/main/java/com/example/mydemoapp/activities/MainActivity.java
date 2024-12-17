@@ -12,6 +12,7 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -34,12 +35,14 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CODE_READ_MEDIA_IMAGES = 2;
     private static final int REQUEST_CODE_WRITE_EXTERNAL_STORAGE = 3;
 
+    private BottomNavigationView bottomNavigationView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
 
         bottomNavigationView.setOnItemSelectedListener(item -> {
             if (item.getItemId() == PICTURES_ID) {
@@ -52,36 +55,21 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
-
-        // Set default fragment
-        replaceFragment(new PictureFragment());
+        bottomNavigationView.setSelectedItemId(PICTURES_ID);
 
         // Request permissions based on the device's API level
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            // For Android 13+ (API 33), request READ_MEDIA_IMAGES
-            if (ContextCompat.checkSelfPermission(this,
-                    Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.READ_MEDIA_IMAGES },
-                        REQUEST_CODE_READ_MEDIA_IMAGES);
-            }
+        requestPermissionsIfNeeded();
+    }
 
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_WRITE_EXTERNAL_STORAGE);
-            }
-
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            // For Android 10+ (API 29), request READ_EXTERNAL_STORAGE
-            if (ContextCompat.checkSelfPermission(this,
-                    Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
-                        REQUEST_CODE_READ_EXTERNAL_STORAGE);
-            }
-
-            if (ContextCompat.checkSelfPermission(this,Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_WRITE_EXTERNAL_STORAGE);
-            }
-
-
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // Set default fragment
+        int selectedId = bottomNavigationView.getSelectedItemId();
+        if (selectedId == PICTURES_ID) {
+            replaceFragment(new PictureFragment());
+        } else if (selectedId == ALBUM_ID) {
+            replaceFragment(new AlbumFragment());
         }
     }
 
@@ -92,10 +80,6 @@ public class MainActivity extends AppCompatActivity {
                     Manifest.permission.READ_MEDIA_IMAGES,
                     REQUEST_CODE_READ_MEDIA_IMAGES
             );
-            checkAndRequestPermission(
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    REQUEST_CODE_WRITE_EXTERNAL_STORAGE
-            );
         }
         // Handle permissions for Android 10+ (API 29) but below 13
         else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -103,13 +87,8 @@ public class MainActivity extends AppCompatActivity {
                     Manifest.permission.READ_EXTERNAL_STORAGE,
                     REQUEST_CODE_READ_EXTERNAL_STORAGE
             );
-            checkAndRequestPermission(
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    REQUEST_CODE_WRITE_EXTERNAL_STORAGE
-            );
         }
-
-        // Handle permissions for devices below Android 10
+        // Handle permissions for Android 9 and below
         else {
             checkAndRequestPermission(
                     Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -121,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
             );
         }
     }
+
 
     private void checkAndRequestPermission(String permission, int requestCode) {
         if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
@@ -135,19 +115,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-          
-            // Permission granted, proceed with file access
-            Toast.makeText(this, "Permission granted!", Toast.LENGTH_SHORT).show();
-            finish();
-            startActivity(getIntent());
             switch(requestCode){
                   case REQUEST_CODE_READ_EXTERNAL_STORAGE:
                   case REQUEST_CODE_READ_MEDIA_IMAGES:
                   case REQUEST_CODE_WRITE_EXTERNAL_STORAGE:
-                      Toast.makeText(this, "Permission granted!", Toast.LENGTH_SHORT).show();
+                      Toast.makeText(this, "Permission granted", Toast.LENGTH_SHORT).show();
+                      replaceFragment(new PictureFragment());
                       break;
               }
         } else {

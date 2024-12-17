@@ -55,5 +55,9 @@
     <string name="solo_previous_btn">Previous</string>
     <string name="solo_add_to_album_btn">Add to album</string>
     <string name="solo_delete_from_album_btn">Delete from album</string>
+    <string name="delete_btn_content">Delete</string>
+    <string name="tick_content">tick</string>
+    <string name="image_thumbnail_content">image_thumbnail</string>
+    <string name="delete_images_btn">DELETE</string>
 
 </resources>

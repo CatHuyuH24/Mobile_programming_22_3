@@ -28,7 +28,7 @@ android:padding="3dp">
                 android:paddingHorizontal="20dp"
                 android:layout_marginEnd="48dp"
                 android:textSize="24sp"
-                android:textColor="@android:color/primary_text_dark" />
+                android:textColor="@android:color/white" />
 
         </LinearLayout>
 
@@ -66,6 +66,16 @@ android:padding="3dp">
             android:layout_height="30dp"
             android:background="@drawable/baseline_adjust_24"
             android:contentDescription="@string/solo_set_phone_background_btn" />
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btn_delete_image"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/button_style"
+                android:textSize="16sp"
+                android:text="@string/delete_btn_content"
+                android:textColor="@android:color/white"
+                android:layout_weight="1"/>
 
         <Space
             android:layout_width="40dp"
