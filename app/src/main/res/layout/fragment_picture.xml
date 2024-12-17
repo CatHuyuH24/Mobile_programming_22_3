@@ -1,61 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
+
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_gravity="center|fill"
-        android:paddingHorizontal="16dp">
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/teal_900"
+        android:gravity="center_vertical"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="My Pictures"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            android:textStyle="bold"
-            />
-        <View
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_marginStart="16dp"
             android:layout_weight="1"
-            android:gravity="center"/>
+            android:text="My Pictures"
+            android:textColor="@android:color/white"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
         <ImageButton
             android:id="@+id/changeGridIconButton"
             android:layout_width="30dp"
             android:layout_height="30dp"
+            android:layout_marginEnd="16dp"
             android:background="@drawable/baseline_dehaze_24"
-            android:contentDescription="Menu icon button"
-            />
+            android:backgroundTint="@android:color/white"
+            android:contentDescription="Menu icon button" />
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:background="@android:color/white"
         android:gravity="center_vertical"
-        android:layout_marginBottom="8dp">
+        android:orientation="horizontal"
+        android:padding="16dp">
+
         <Button
             android:id="@+id/btn_random_image"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
             android:layout_weight="1"
-            android:text="Random Image"
-            android:layout_marginEnd="8dp"/>
+            android:backgroundTint="@color/teal_700"
+            android:text="Random Image" />
+
         <Spinner
             android:id="@+id/spinner_filter"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"/>
+            android:layout_weight="1"
+            android:backgroundTint="@color/teal_700"
+            android:backgroundTintMode="add" />
     </LinearLayout>
 
-    <!-- RecyclerView for displaying images -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:scrollbars="vertical"/>
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:padding="8dp"
+        android:scrollbars="vertical"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        app:spanCount="2" />
 
 </LinearLayout>
