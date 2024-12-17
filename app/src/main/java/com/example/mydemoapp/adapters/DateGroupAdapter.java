@@ -31,6 +31,10 @@ public class DateGroupAdapter extends RecyclerView.Adapter<DateGroupAdapter.Date
         this.imageLongClickListener = imageLongClickListener;
     }
 
+    public List<DateGroup> getDateGroups(){
+        return dateGroups;
+    }
+
     @NonNull
     @Override
     public DateGroupViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
