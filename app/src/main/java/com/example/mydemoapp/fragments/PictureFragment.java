@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.mydemoapp.R;
 import com.example.mydemoapp.activities.SoloImageActivity;
 import com.example.mydemoapp.adapters.DateGroupAdapter;
 import com.example.mydemoapp.adapters.MonthGroupAdapter;
@@ -116,12 +117,15 @@ public class PictureFragment extends Fragment {
                             if (currentGrouping == null || currentGrouping.equals("date")) {
                                 updateGrouping("month");
                                 v.setTag("month");
+                                binding.changeGridIconButton.setBackgroundResource(R.drawable.baseline_grid_on_24);
                             } else if (currentGrouping.equals("month")) {
                                 updateGrouping("year");
                                 v.setTag("year");
+                                binding.changeGridIconButton.setBackgroundResource(R.drawable.baseline_grid_view_24);
                             } else {
                                 updateGrouping("date");
                                 v.setTag("date");
+                                binding.changeGridIconButton.setBackgroundResource(R.drawable.baseline_dehaze_24);
                             }
                         } catch (Exception e) {
                             Log.e("PictureFragment", "Error in changeGridIconButton onClick", e);
@@ -150,7 +154,7 @@ public class PictureFragment extends Fragment {
             startSoloImageActivity(randomIndex);
         }
         else {
-            Toast.makeText(getContext(), "List Image Empty", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "No images available", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -220,7 +224,11 @@ public class PictureFragment extends Fragment {
         }
 
         if (index != -1) {
-            startSoloImageActivity(index);
+            // Create an intent to start SoloImageActivity
+            Intent intent = new Intent(getActivity(), SoloImageActivity.class);
+            intent.putStringArrayListExtra("IMAGE_PATHS", getImagePathsFromList(imageList));
+            intent.putExtra("CURRENT_IMAGE_INDEX", index);
+            startActivity(intent);
         }
     }
 
