@@ -59,8 +59,10 @@ public class MainActivity extends AppCompatActivity {
         // Request permissions based on the device's API level
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             // For Android 13+ (API 33), request READ_MEDIA_IMAGES
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_MEDIA_IMAGES}, REQUEST_CODE_READ_MEDIA_IMAGES);
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.READ_MEDIA_IMAGES },
+                        REQUEST_CODE_READ_MEDIA_IMAGES);
             }
 
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
@@ -69,8 +71,10 @@ public class MainActivity extends AppCompatActivity {
 
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             // For Android 10+ (API 29), request READ_EXTERNAL_STORAGE
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_CODE_READ_EXTERNAL_STORAGE);
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.READ_EXTERNAL_STORAGE },
+                        REQUEST_CODE_READ_EXTERNAL_STORAGE);
             }
 
             if (ContextCompat.checkSelfPermission(this,Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
@@ -134,15 +138,18 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+          
             // Permission granted, proceed with file access
+            Toast.makeText(this, "Permission granted!", Toast.LENGTH_SHORT).show();
+            finish();
+            startActivity(getIntent());
             switch(requestCode){
-                case REQUEST_CODE_READ_EXTERNAL_STORAGE:
-                case REQUEST_CODE_READ_MEDIA_IMAGES:
-                case REQUEST_CODE_WRITE_EXTERNAL_STORAGE:
-                    Toast.makeText(this, "Permission granted!", Toast.LENGTH_SHORT).show();
-                    break;
-            }
-
+                  case REQUEST_CODE_READ_EXTERNAL_STORAGE:
+                  case REQUEST_CODE_READ_MEDIA_IMAGES:
+                  case REQUEST_CODE_WRITE_EXTERNAL_STORAGE:
+                      Toast.makeText(this, "Permission granted!", Toast.LENGTH_SHORT).show();
+                      break;
+              }
         } else {
             // Permission denied, show an explanation or handle the denial
             Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show();

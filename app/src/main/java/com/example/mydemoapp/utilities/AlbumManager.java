@@ -56,19 +56,6 @@ public class AlbumManager {
         saveAlbums(albums);
     }
 
-    public void updateAlbum(Album album) {
-        List<Album> albums = loadAlbums();
-
-        for (int i = 0; i < albums.size(); i++) {
-            if (albums.get(i).getName().equals(album.getName())) {
-                albums.set(i, album);
-                break;
-            }
-        }
-
-        saveAlbums(albums);
-    }
-
     public void removeAlbum(String albumName) {
         List<Album> albums = loadAlbums();
 
@@ -80,23 +67,6 @@ public class AlbumManager {
         }
 
         saveAlbums(albums);
-    }
-
-    public ArrayList<String> getImagePathsFromAlbum(String albumName) {
-        List<Album> albums = loadAlbums();
-        ArrayList<String> imagePaths = new ArrayList<>();
-
-        for (Album album : albums) {
-            if (album.getName().equals(albumName)) {
-                for (ImageItem image : album.getImages()) {
-                    imagePaths.add(image.getImagePath());
-                }
-
-                break;
-            }
-        }
-
-        return imagePaths;
     }
 
     public void addImageToAlbum(String albumName, String imagePath) {
@@ -158,7 +128,7 @@ public class AlbumManager {
             if (album.getName().equals("All")) {
                 continue;
             }
-            
+
             for (ImageItem image : album.getImages()) {
                 if (image.getImagePath().equals(imagePath)) {
                     albumNames.add(album.getName());
