@@ -12,17 +12,29 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.mydemoapp.models.DateGroup;
 import com.example.mydemoapp.R;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class MonthGroupAdapter extends RecyclerView.Adapter<MonthGroupAdapter.MonthGroupViewHolder> {
+public class MonthGroupAdapter extends RecyclerView.Adapter<MonthGroupAdapter.MonthGroupViewHolder> implements IDateAdapter{
     private final List<DateGroup> monthGroups;
     private final Context context;
-    private final DateGroupAdapter.OnImageClickListener imageClickListener;
-    private final DateGroupAdapter.OnImageLongClickListener imageLongClickListener;
+    private final OnImageClickListener imageClickListener;
+    private final OnImageLongClickListener imageLongClickListener;
+    private final List<ImageAdapter> imageAdapters = new ArrayList<>();
+
+    @Override
+    public void notifyDatasetPositionalUpdates() {
+        notifyItemRangeChanged(0,getItemCount());
+    }
+
+    @Override
+    public void updateChildAdapter(int groupIndex, int index){
+        imageAdapters.get(groupIndex).onImageClick(index);
+    }
 
     public MonthGroupAdapter(Context context, List<DateGroup> monthGroups,
-                             DateGroupAdapter.OnImageClickListener imageClickListener,
-                             DateGroupAdapter.OnImageLongClickListener imageLongClickListener) {
+                             OnImageClickListener imageClickListener,
+                             OnImageLongClickListener imageLongClickListener) {
         this.monthGroups = monthGroups;
         this.context = context;
         this.imageClickListener = imageClickListener;
@@ -63,6 +75,7 @@ public class MonthGroupAdapter extends RecyclerView.Adapter<MonthGroupAdapter.Mo
             int numberOfCol = 4;
             recyclerView.setLayoutManager(new GridLayoutManager(context, numberOfCol));
             ImageAdapter imageAdapter = new ImageAdapter(context, monthGroup.getImages(), imageClickListener, imageLongClickListener, getBindingAdapterPosition());
+            imageAdapters.add(imageAdapter);
             recyclerView.setAdapter(imageAdapter);
         }
     }

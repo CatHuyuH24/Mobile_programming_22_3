@@ -2,6 +2,7 @@ package com.example.mydemoapp.adapters;
 
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,13 +22,13 @@ import java.util.List;
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHolder> {
     private final Context context;
     private final List<ImageItem> images;
-    private final DateGroupAdapter.OnImageClickListener imageClickListener;
-    private final DateGroupAdapter.OnImageLongClickListener imageLongClickListener;
-    private int groupIndex;
+    private final IDateAdapter.OnImageClickListener imageClickListener;
+    private final IDateAdapter.OnImageLongClickListener imageLongClickListener;
+    private final int groupIndex;
 
     public ImageAdapter(Context context, List<ImageItem> images,
-                        DateGroupAdapter.OnImageClickListener imageClickListener,
-                        DateGroupAdapter.OnImageLongClickListener imageLongClickListener,
+                        DayGroupAdapter.OnImageClickListener imageClickListener,
+                        DayGroupAdapter.OnImageLongClickListener imageLongClickListener,
                         int parentPosition) {
         this.context = context;
         this.images = images;
@@ -67,6 +68,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
             // Set onClickListener to handle image clicks
             itemView.setOnClickListener(view -> {
                 if (imageClickListener != null) {
+                    Log.i("ImageAdapter", "image click listener not null\nGroup index: "+groupIndex+"\nImage path: "+imageItem.getImagePath()+"\nAdapter position: "+getBindingAdapterPosition());
                     int position = getBindingAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
                         imageClickListener.onImageClick(groupIndex, imageItem.getImagePath(), getBindingAdapterPosition());
@@ -76,6 +78,7 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ImageViewHol
 
             itemView.setOnLongClickListener(view -> {
                 if (imageLongClickListener != null) {
+                    Log.i("ImageAdapter","image long click listener not null\nImage path: "+imageItem.getImagePath());
                     imageItem.toggleIsSelected();
                     notifyItemChanged(getBindingAdapterPosition());
                     imageLongClickListener.onImageLongClickListener(imageItem.getImagePath());

@@ -1,7 +1,5 @@
 package com.example.mydemoapp.fragments;
 
-import static android.app.Activity.RESULT_OK;
-
 import android.app.PendingIntent;
 import android.app.RecoverableSecurityException;
 import android.content.Intent;
@@ -20,7 +18,6 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -29,7 +26,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.mydemoapp.R;
 import com.example.mydemoapp.activities.SoloImageActivity;
-import com.example.mydemoapp.adapters.DateGroupAdapter;
+import com.example.mydemoapp.adapters.DayGroupAdapter;
+import com.example.mydemoapp.adapters.IDateAdapter;
 import com.example.mydemoapp.adapters.MonthGroupAdapter;
 import com.example.mydemoapp.adapters.YearGroupAdapter;
 import com.example.mydemoapp.databinding.FragmentPictureBinding;
@@ -40,7 +38,7 @@ import com.example.mydemoapp.utilities.ImageGrouping;
 import com.example.mydemoapp.utilities.ImageDeletion;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -50,7 +48,7 @@ public class PictureFragment extends Fragment {
     private List<ImageItem> imageList;
     private boolean isSelectionMode = false;
     private final List<Integer> selectedImageIndices = new ArrayList<>();
-    private DateGroupAdapter dateGroupAdapter;
+    private IDateAdapter currentDateAdapter;
 
     private TextView selectedImageNumber;
     private Button deleteBtn;
@@ -90,14 +88,14 @@ public class PictureFragment extends Fragment {
                     return;
                 }
 
-                if(!(groupAdapter instanceof DateGroupAdapter))
+                if(!(groupAdapter instanceof DayGroupAdapter))
                 {
                     Log.e("PictureFragment", "Invalid Adapter Type");
                     return;
                 }
 
-                DateGroupAdapter dateGroupAdapter = (DateGroupAdapter) groupAdapter;
-                List<DateGroup> dateGroups = dateGroupAdapter.getDateGroups();
+                DayGroupAdapter dayGroupAdapter = (DayGroupAdapter) groupAdapter;
+                List<DateGroup> dateGroups = dayGroupAdapter.getDateGroups();
 
                 if(dateGroups == null || dateGroups.isEmpty())
                 {
@@ -109,10 +107,10 @@ public class PictureFragment extends Fragment {
                 {
                     dateGroups.sort((group1, group2) -> group2.getDate().compareTo(group1.getDate()));
                 } else if (position == 1) { // Increase
-                    dateGroups.sort((group1, group2) -> group1.getDate().compareTo(group2.getDate()));
+                    dateGroups.sort(Comparator.comparing(DateGroup::getDate));
                 }
                 // Notify the adapter of data changes
-                dateGroupAdapter.notifyDataSetChanged();
+                dayGroupAdapter.notifyItemRangeChanged(0, dayGroupAdapter.getItemCount());
             }
 
             @Override
@@ -232,10 +230,11 @@ public class PictureFragment extends Fragment {
             for (String key : groupedMap.keySet()) {
                 dateGroups.add(new DateGroup(key, groupedMap.get(key)));
             }
-            adapter = new DateGroupAdapter(getContext(), dateGroups,
+            adapter = new DayGroupAdapter(getContext(), dateGroups,
                     this::onImageClick, this::onLongImageClick);
         }
 
+        currentDateAdapter = (IDateAdapter) adapter;
         binding.recyclerView.setAdapter(adapter);
     }
 
@@ -264,8 +263,7 @@ public class PictureFragment extends Fragment {
                 .detach(PictureFragment.this) // Detach Fragment
                 .commit();    // Apply changes
 
-        dateGroupAdapter.notifyDataSetChanged();
-
+        currentDateAdapter.notifyDatasetPositionalUpdates();
         getParentFragmentManager()
                 .beginTransaction()
                 .attach(PictureFragment.this)
@@ -295,10 +293,15 @@ public class PictureFragment extends Fragment {
                 break;
             }
         }
-
+        Log.i("PictureFragment","The image path: "+imagePath+"\nAdapter pos: "+adapterPosition);
         if(isSelectionMode){
             toggleSelection(index);//need fixing, debugging the long-click...
-            dateGroupAdapter.onImageClick(groupIndex, adapterPosition);
+            if(currentDateAdapter != null){
+                Log.i("PictureFragment","Date group adapter when clicking on image, during selectionMode is NOT NULL");
+                currentDateAdapter.updateChildAdapter(groupIndex, adapterPosition);
+            }else {
+                Log.e("PictureFragment", "Date group adapter when clicking on image, during selectionMode is NULL");
+            }
             updateImagesNumberDisplay();
         } else {
             if (index != -1) {
@@ -333,6 +336,7 @@ public class PictureFragment extends Fragment {
     }
 
     private void toggleSelection(int index){
+        Log.i("PictureFragment","toggleSelection called with index: " + index);
         if(selectedImageIndices.contains(index)){
             selectedImageIndices.remove((Integer) index);
         } else {

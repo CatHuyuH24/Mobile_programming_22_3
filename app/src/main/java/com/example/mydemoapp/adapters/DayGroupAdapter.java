@@ -16,15 +16,15 @@ import com.example.mydemoapp.R;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DateGroupAdapter extends RecyclerView.Adapter<DateGroupAdapter.DateGroupViewHolder> {
+public class DayGroupAdapter extends RecyclerView.Adapter<DayGroupAdapter.DateGroupViewHolder> implements IDateAdapter {
     private final List<DateGroup> dateGroups;
     private final Context context;
     private final OnImageClickListener imageClickListener;
-    private final OnImageLongClickListener imageLongClickListener;
+    private final IDateAdapter.OnImageLongClickListener imageLongClickListener;
     private final List<ImageAdapter> imageAdapters = new ArrayList<>();
-    public DateGroupAdapter(Context context, List<DateGroup> dateGroups,
-                            OnImageClickListener imageClickListener,
-                            OnImageLongClickListener imageLongClickListener) {
+    public DayGroupAdapter(Context context, List<DateGroup> dateGroups,
+                           OnImageClickListener imageClickListener,
+                           OnImageLongClickListener imageLongClickListener) {
         this.dateGroups = dateGroups;
         this.context = context;
         this.imageClickListener = imageClickListener; // Accept listener
@@ -53,6 +53,16 @@ public class DateGroupAdapter extends RecyclerView.Adapter<DateGroupAdapter.Date
         return dateGroups.size();
     }
 
+    @Override
+    public void notifyDatasetPositionalUpdates() {
+        notifyItemRangeChanged(0,getItemCount());
+    }
+
+    @Override
+    public void updateChildAdapter(int groupIndex, int index){
+        imageAdapters.get(groupIndex).onImageClick(index);
+    }
+
     public class DateGroupViewHolder extends RecyclerView.ViewHolder {
         private final TextView dateText;
         private final RecyclerView recyclerView;
@@ -75,34 +85,21 @@ public class DateGroupAdapter extends RecyclerView.Adapter<DateGroupAdapter.Date
         }
     }
 
-    public interface OnImageClickListener {
-        void onImageClick(int groupIndex, String imagePath, int adapterPosition);
-    }
-
-    public interface OnImageLongClickListener{
-        void onImageLongClickListener(String imagePath);
-    }
-
-
-    public void removeImage(int dateGroupPosition, int imagePosition) {
-        if (dateGroupPosition >= 0 && dateGroupPosition < dateGroups.size()) {
-            DateGroup dateGroup = dateGroups.get(dateGroupPosition);
-
-            if (imagePosition >= 0 && imagePosition < dateGroup.getImages().size()) {
-                dateGroup.removeImageAt(imagePosition);
-
-                // If the DateGroup has no images left, remove the entire group
-                if (dateGroup.getImages().isEmpty()) {
-                    dateGroups.remove(dateGroupPosition);
-                }
-
-                // Notify the ImageAdapter of the change
-                notifyItemChanged(dateGroupPosition);
-            }
-        }
-    }
-
-    public void onImageClick(int groupIndex, int index){
-        imageAdapters.get(groupIndex).onImageClick(index);
-    }
+//    public void removeImage(int dateGroupPosition, int imagePosition) {
+//        if (dateGroupPosition >= 0 && dateGroupPosition < dateGroups.size()) {
+//            DateGroup dateGroup = dateGroups.get(dateGroupPosition);
+//
+//            if (imagePosition >= 0 && imagePosition < dateGroup.getImages().size()) {
+//                dateGroup.removeImageAt(imagePosition);
+//
+//                // If the DateGroup has no images left, remove the entire group
+//                if (dateGroup.getImages().isEmpty()) {
+//                    dateGroups.remove(dateGroupPosition);
+//                }
+//
+//                // Notify the ImageAdapter of the change
+//                notifyItemChanged(dateGroupPosition);
+//            }
+//        }
+//    }
 }

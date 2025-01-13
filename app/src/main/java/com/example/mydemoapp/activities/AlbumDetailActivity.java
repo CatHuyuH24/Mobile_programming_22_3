@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.mydemoapp.R;
-import com.example.mydemoapp.adapters.DateGroupAdapter;
+import com.example.mydemoapp.adapters.DayGroupAdapter;
 import com.example.mydemoapp.models.Album;
 import com.example.mydemoapp.models.DateGroup;
 import com.example.mydemoapp.models.ImageItem;
@@ -83,7 +83,7 @@ public class AlbumDetailActivity extends AppCompatActivity {
                     .map(ImageItem::getImagePath)
                     .collect(Collectors.toCollection(ArrayList::new));
 
-            DateGroupAdapter adapter = new DateGroupAdapter(this, dateGroups,
+            DayGroupAdapter adapter = new DayGroupAdapter(this, dateGroups,
                     ( groupIndex, imagePath, adapterPosition) -> {
                 Intent intent = new Intent(this, SoloImageActivity.class);
                 intent.putExtra("IMAGE_PATHS", imagePaths);
