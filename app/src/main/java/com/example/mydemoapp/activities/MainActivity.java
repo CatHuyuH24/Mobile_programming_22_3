@@ -1,5 +1,7 @@
 package com.example.mydemoapp.activities;
 
+import static java.lang.Thread.sleep;
+
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -114,6 +116,14 @@ public class MainActivity extends AppCompatActivity {
                   case REQUEST_CODE_READ_MEDIA_IMAGES:
                   case REQUEST_CODE_WRITE_EXTERNAL_STORAGE:
                       Toast.makeText(this, "Permission granted!", Toast.LENGTH_SHORT).show();
+                      try {
+                          // avoid rapid changing screens
+                          sleep(1000);
+                          replaceFragment(new PictureFragment());
+                      } catch (InterruptedException e) {
+                          throw new RuntimeException(e);
+                      }
+
                       break;
               }
         } else {

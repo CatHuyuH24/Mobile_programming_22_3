@@ -86,13 +86,13 @@ public class PictureFragment extends Fragment {
                 RecyclerView.Adapter<?> groupAdapter = recyclerView.getAdapter();
                 if(groupAdapter == null)
                 {
-                    Toast.makeText(getContext(), "Adapter is null", Toast.LENGTH_SHORT).show();
+                    Log.e("PictureFragment","Adapter is null");
                     return;
                 }
 
                 if(!(groupAdapter instanceof DateGroupAdapter))
                 {
-                    Toast.makeText(getContext(), "Invalid Adapter Type", Toast.LENGTH_SHORT).show();
+                    Log.e("PictureFragment", "Invalid Adapter Type");
                     return;
                 }
 
@@ -101,7 +101,7 @@ public class PictureFragment extends Fragment {
 
                 if(dateGroups == null || dateGroups.isEmpty())
                 {
-                    Toast.makeText(getContext(), "Date Groups is Empty", Toast.LENGTH_SHORT).show();
+                    Log.e("PictureFragment","Date Groups is Empty");
                     return;
                 }
 
