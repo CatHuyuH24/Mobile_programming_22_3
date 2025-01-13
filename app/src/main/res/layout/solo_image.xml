@@ -86,17 +86,18 @@ android:padding="3dp">
             android:id="@+id/btn_solo_delete_from_album"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:background="@drawable/baseline_delete_outline_24"
+            android:background="@drawable/baseline_bookmark_remove_24"
             android:contentDescription="@string/solo_delete_from_album_btn" />
+
+        <Space
+            android:layout_width="40dp"
+            android:layout_height="match_parent" />
+
         <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btn_delete_image"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:background="@drawable/button_style"
-            android:textSize="16sp"
-            android:text="@string/delete_btn_content"
-            android:textColor="@android:color/white"
-            android:layout_weight="1"/>
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/baseline_delete_outline_24"
+            android:contentDescription="@string/delete_the_current_image"/>
     </LinearLayout>
 </LinearLayout>

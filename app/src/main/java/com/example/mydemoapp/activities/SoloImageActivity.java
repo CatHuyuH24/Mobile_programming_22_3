@@ -80,6 +80,7 @@ public class SoloImageActivity extends AppCompatActivity {
         deleteFromAlbumBtn = findViewById(R.id.btn_solo_delete_from_album);
 
         deleteImageBtn = findViewById(R.id.btn_delete_image);
+
         // Get the data from the intent
         imagePaths = getIntent().getStringArrayListExtra("IMAGE_PATHS");
         currentIndex = getIntent().getIntExtra("CURRENT_IMAGE_INDEX", -1);
@@ -99,46 +100,6 @@ public class SoloImageActivity extends AppCompatActivity {
 
         // Delete from album button
         deleteFromAlbumBtn.setOnClickListener(view -> deleteFromAlbum());
-        gestureDetector = new GestureDetector(this, new MyGestureListener());
-        btnShare = findViewById(R.id.btn_share_image);
-        btnShare.setOnClickListener(view -> shareImage());
-
-    }
-
-    private void shareImage() {
-        BitmapDrawable bitmapDrawable = (BitmapDrawable) soloImageView.getDrawable();
-        Bitmap bitmap = bitmapDrawable.getBitmap();
-        shareImageAndText(bitmap);
-    }
-
-    private void shareImageAndText(Bitmap bitmap) {
-        Uri uri = getImageToShare(bitmap);
-        Intent intent = new Intent(Intent.ACTION_SEND);
-        intent.putExtra(Intent.EXTRA_STREAM, uri);
-        intent.putExtra(Intent.EXTRA_SUBJECT, "image subject");
-        intent.setType("image/*");
-        startActivity(Intent.createChooser(intent, "Share Via"));
-    }
-
-    private Uri getImageToShare(Bitmap bitmap) {
-        File folder = new File(getCacheDir(), "images");
-        Uri uri = null;
-        try {
-            folder.mkdirs();
-            File file = new File(folder, "image.jpg");
-
-            FileOutputStream fileOutputStream = new FileOutputStream(file);
-
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fileOutputStream);
-            fileOutputStream.flush();
-            fileOutputStream.close();
-
-            uri = FileProvider.getUriForFile(this, "com.example.mydemoapp.fileprovider", file);
-
-        } catch (Exception e) {
-            Toast.makeText(this, "Failed to share image: " + e, Toast.LENGTH_LONG).show();
-            throw new RuntimeException(e);
-        }
 
         deleteImageBtn.setOnClickListener(view -> {
             AlbumManager albumManager = new AlbumManager(this);
@@ -184,6 +145,47 @@ public class SoloImageActivity extends AppCompatActivity {
                     })
                     .show();
         });
+
+        gestureDetector = new GestureDetector(this, new MyGestureListener());
+        btnShare = findViewById(R.id.btn_share_image);
+        btnShare.setOnClickListener(view -> shareImage());
+
+    }
+
+    private void shareImage() {
+        BitmapDrawable bitmapDrawable = (BitmapDrawable) soloImageView.getDrawable();
+        Bitmap bitmap = bitmapDrawable.getBitmap();
+        shareImageAndText(bitmap);
+    }
+
+    private void shareImageAndText(Bitmap bitmap) {
+        Uri uri = getImageToShare(bitmap);
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.putExtra(Intent.EXTRA_STREAM, uri);
+        intent.putExtra(Intent.EXTRA_SUBJECT, "image subject");
+        intent.setType("image/*");
+        startActivity(Intent.createChooser(intent, "Share Via"));
+    }
+
+    private Uri getImageToShare(Bitmap bitmap) {
+        File folder = new File(getCacheDir(), "images");
+        Uri uri = null;
+        try {
+            folder.mkdirs();
+            File file = new File(folder, "image.jpg");
+
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fileOutputStream);
+            fileOutputStream.flush();
+            fileOutputStream.close();
+
+            uri = FileProvider.getUriForFile(this, "com.example.mydemoapp.fileprovider", file);
+
+        } catch (Exception e) {
+            Toast.makeText(this, "Failed to share image: " + e, Toast.LENGTH_LONG).show();
+            throw new RuntimeException(e);
+        }
 
         return uri;
     }
