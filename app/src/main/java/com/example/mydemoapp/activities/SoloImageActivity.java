@@ -8,6 +8,7 @@ import android.content.IntentSender;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -28,20 +29,22 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.target.Target;
-import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 
 import com.example.mydemoapp.R;
 import com.example.mydemoapp.models.Album;
 import com.example.mydemoapp.models.ImageItem;
 import com.example.mydemoapp.utilities.AlbumManager;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.example.mydemoapp.utilities.ImageDeletion;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,7 +54,7 @@ import java.util.List;
 public class SoloImageActivity extends AppCompatActivity {
     private ImageView soloImageView;
     private TextView tvTitle;
-    private Button backBtn, setBackgroundBtn, addToAlbumBtn, deleteFromAlbumBtn, deleteImageBtn;
+    private Button backBtn, btnShare, setBackgroundBtn, addToAlbumBtn, deleteFromAlbumBtn, deleteImageBtn;
 
     private ArrayList<String> imagePaths;
     private int currentIndex;
@@ -75,7 +78,7 @@ public class SoloImageActivity extends AppCompatActivity {
         setBackgroundBtn = findViewById(R.id.btn_solo_set_background);
         addToAlbumBtn = findViewById(R.id.btn_solo_add_to_album);
         deleteFromAlbumBtn = findViewById(R.id.btn_solo_delete_from_album);
-        
+
         deleteImageBtn = findViewById(R.id.btn_delete_image);
         // Get the data from the intent
         imagePaths = getIntent().getStringArrayListExtra("IMAGE_PATHS");
@@ -97,6 +100,45 @@ public class SoloImageActivity extends AppCompatActivity {
         // Delete from album button
         deleteFromAlbumBtn.setOnClickListener(view -> deleteFromAlbum());
         gestureDetector = new GestureDetector(this, new MyGestureListener());
+        btnShare = findViewById(R.id.btn_share_image);
+        btnShare.setOnClickListener(view -> shareImage());
+
+    }
+
+    private void shareImage() {
+        BitmapDrawable bitmapDrawable = (BitmapDrawable) soloImageView.getDrawable();
+        Bitmap bitmap = bitmapDrawable.getBitmap();
+        shareImageAndText(bitmap);
+    }
+
+    private void shareImageAndText(Bitmap bitmap) {
+        Uri uri = getImageToShare(bitmap);
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.putExtra(Intent.EXTRA_STREAM, uri);
+        intent.putExtra(Intent.EXTRA_SUBJECT, "image subject");
+        intent.setType("image/*");
+        startActivity(Intent.createChooser(intent, "Share Via"));
+    }
+
+    private Uri getImageToShare(Bitmap bitmap) {
+        File folder = new File(getCacheDir(), "images");
+        Uri uri = null;
+        try {
+            folder.mkdirs();
+            File file = new File(folder, "image.jpg");
+
+            FileOutputStream fileOutputStream = new FileOutputStream(file);
+
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fileOutputStream);
+            fileOutputStream.flush();
+            fileOutputStream.close();
+
+            uri = FileProvider.getUriForFile(this, "com.example.mydemoapp.fileprovider", file);
+
+        } catch (Exception e) {
+            Toast.makeText(this, "Failed to share image: " + e, Toast.LENGTH_LONG).show();
+            throw new RuntimeException(e);
+        }
 
         deleteImageBtn.setOnClickListener(view -> {
             AlbumManager albumManager = new AlbumManager(this);
@@ -143,6 +185,7 @@ public class SoloImageActivity extends AppCompatActivity {
                     .show();
         });
 
+        return uri;
     }
 
     private void loadImage(int index) {
@@ -565,8 +608,6 @@ public class SoloImageActivity extends AppCompatActivity {
 
         return null; // Return null if the process fails
     }
-
-
 }
 
 
